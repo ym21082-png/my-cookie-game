@@ -5,7 +5,7 @@ let items = [
     { name: "おばあちゃん", cost: 100, gps: 5, count: 0 },
     { name: "農場", cost: 500, gps: 20, count: 0 },
     { name: "工場", cost: 2000, gps: 100, count: 0 },
-    { name: "魔法の神殿", cost: 10000, gps: 500, count: 0 }
+    { name: "コマンダー", cost: 10000, gps: 500, count: 0 }
 ];
 
 let cookies = 0;
