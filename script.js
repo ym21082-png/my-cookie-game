@@ -210,25 +210,34 @@ function loadGame() {
         }
     }
 }
+// --- データ削除機能（最終版） ---
+
 function resetGame() {
-    if (confirm("本当にデータを削除しますか？")) {
-        // 1. オートセーブのループを止める（重要！）
-        // これをしないと、消した直後にまたセーブされてしまうことがあります
-        // （setIntervalのIDを変数に入れていないので、強引にすべてのIDを止めます）
-        let highestIntervalId = setInterval(";");
-        for (let i = 0 ; i < highestIntervalId ; i++) {
-            clearInterval(i);
+    if (confirm("本当にデータを削除して最初からにしますか？")) {
+        
+        // 1. まず、ゲーム内の数字をすべて「0」に戻す
+        cookies = 0;
+        cursorCost = 15; // 初期の価格に戻す
+        cursors = 0;     // (古い変数も念のため)
+        
+        // アイテムの所持数を全部0にする
+        items.forEach(item => {
+            item.count = 0;
+            // 価格も初期に戻したい場合はここで設定が必要ですが、
+            // 今回はとりあえず所持数0になればOKとします
+        });
+
+        // スキルの習得状況もリセット
+        if (typeof skills !== 'undefined') {
+            skills.forEach(skill => skill.unlocked = false);
         }
 
-        // 2. データを消す
-        localStorage.clear();
-        
-        // 3. 変数も全部0にする（念には念を）
-        cookies = 0;
-        items.forEach(item => item.count = 0);
+        // 2. 「空っぽの状態」を強制的に保存（上書き）する！
+        // remove(削除)ではなく、save(保存)を使うのがコツです
+        saveGame();
 
-        // 4. 強制的にリロード
-        alert("データを削除しました。リロードします。");
+        // 3. その後でリロードする
+        alert("データをリセットしました。");
         location.reload();
     }
 }
