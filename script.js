@@ -210,34 +210,40 @@ function loadGame() {
         }
     }
 }
-// --- データ削除機能（最終版） ---
+// --- データ削除機能（価格リセット対応版） ---
 
 function resetGame() {
     if (confirm("本当にデータを削除して最初からにしますか？")) {
         
-        // 1. まず、ゲーム内の数字をすべて「0」に戻す
+        // 1. クッキーを0にする
         cookies = 0;
-        cursorCost = 15; // 初期の価格に戻す
-        cursors = 0;     // (古い変数も念のため)
-        
-        // アイテムの所持数を全部0にする
-        items.forEach(item => {
-            item.count = 0;
-            // 価格も初期に戻したい場合はここで設定が必要ですが、
-            // 今回はとりあえず所持数0になればOKとします
-        });
 
-        // スキルの習得状況もリセット
+        // 2. アイテムリストを「初期状態」で上書きする
+        // (こうすることで、価格も最初の安い値段に戻ります)
+        items = [
+            { name: "カーソル", cost: 15, gps: 1, count: 0 },
+            { name: "おばあちゃん", cost: 100, gps: 5, count: 0 },
+            { name: "農場", cost: 500, gps: 20, count: 0 },
+            { name: "工場", cost: 2000, gps: 100, count: 0 },
+            { name: "見習いコマンダー", cost: 10000, gps: 500, count: 0 },
+            { name: "地面", cost: 40000, gps: 2000, count: 0 },
+            { name: "水力生成", cost: 200000, gps: 8000, count: 0 },
+            { name: "太陽光生成", cost: 1500000, gps: 40000, count: 0 },
+            { name: "マントル", cost: 50000000, gps: 200000, count: 0 },
+            { name: "宇宙ステーション", cost: 700000000, gps: 1500000, count: 0 },
+            { name: "タイムマシン", cost: 9999999999, gps: 10000000, count: 0 }
+        ];
+
+        // 3. スキルもリセット
         if (typeof skills !== 'undefined') {
             skills.forEach(skill => skill.unlocked = false);
         }
 
-        // 2. 「空っぽの状態」を強制的に保存（上書き）する！
-        // remove(削除)ではなく、save(保存)を使うのがコツです
+        // 4. この「新品の状態」を保存する
         saveGame();
 
-        // 3. その後でリロードする
-        alert("データをリセットしました。");
+        // 5. リロード
+        alert("データをリセットしました。価格も初期に戻ります。");
         location.reload();
     }
 }
