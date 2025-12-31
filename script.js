@@ -5,7 +5,13 @@ let items = [
     { name: "おばあちゃん", cost: 100, gps: 5, count: 0 },
     { name: "農場", cost: 500, gps: 20, count: 0 },
     { name: "工場", cost: 2000, gps: 100, count: 0 },
-    { name: "コマンダー", cost: 10000, gps: 500, count: 0 }
+    { name: "コマンダー", cost: 10000, gps: 500, count: 0 },
+    { name: "宇宙ステーション", cost: 50000, gps: 2000, count: 0 },
+    { name: "タイムマシン", cost: 1000000, gps: 9999, count: 0 },
+    { name: "水力生成", cost: 500000, gps: 70000, count: 0 },
+    { name: "太陽光生成", cost: 1000000, gps: 180000, count: 0 },
+    { name: "地面", cost: 20000000, gps: 2000000, count: 0 },
+    { name: "マントル", cost: 500000000, gps: 15000000, count: 0 }
 ];
 
 let cookies = 0;
