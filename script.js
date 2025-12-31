@@ -115,7 +115,7 @@ function updateDisplay() {
     createSkills();
 }
 
-// --- 転生機能 ---
+// --- 転生機能（修正版） ---
 
 function reincarnate() {
     // 獲得できるチップを計算（累計100万枚ごとに1枚）
@@ -129,23 +129,38 @@ function reincarnate() {
 
     if (confirm(`転生しますか？\n\n・クッキーと施設は全て失われます\n・天界チップを ${newChips}枚 獲得します\n・生産力が永続的に ${newChips * 10}% アップします`)) {
         
-        // 天界チップを増やす
+        // 1. 天界チップを加算
         prestigeLevel += newChips;
         
-        // リセット処理（チップと累計は残す）
+        // 2. クッキーを0にする
         cookies = 0;
-        items.forEach(item => {
-            item.count = 0;
-            // 価格を初期値に戻す必要があるが、簡易的にリロードで対応
-        });
+
+        // 3. ★ここが重要★
+        // アイテムを「初期価格」のリストで丸ごと上書きする
+        // (以前のコードでは count=0 にしただけで、costが高いままでした)
+        items = [
+            { name: "カーソル", cost: 15, gps: 1, count: 0 },
+            { name: "おばあちゃん", cost: 100, gps: 5, count: 0 },
+            { name: "農場", cost: 500, gps: 20, count: 0 },
+            { name: "工場", cost: 2000, gps: 100, count: 0 },
+            { name: "見習いコマンダー", cost: 10000, gps: 500, count: 0 },
+            { name: "地面", cost: 40000, gps: 2000, count: 0 },
+            { name: "水力生成", cost: 200000, gps: 8000, count: 0 },
+            { name: "太陽光生成", cost: 1500000, gps: 40000, count: 0 },
+            { name: "マントル", cost: 50000000, gps: 200000, count: 0 },
+            { name: "宇宙ステーション", cost: 700000000, gps: 1500000, count: 0 },
+            { name: "タイムマシン", cost: 9999999999, gps: 10000000, count: 0 }
+        ];
+
+        // 4. スキルも未習得に戻す
         skills.forEach(skill => skill.unlocked = false);
 
-        // データを保存して強制リロード（価格リセットのため）
+        // 5. データを保存して強制リロード
+        // (これで初期価格のデータがセーブされます)
         saveGame();
         location.reload();
     }
 }
-
 // --- ショップ＆スキル作成 ---
 function createShop() {
     const container = document.getElementById("shop-container");
