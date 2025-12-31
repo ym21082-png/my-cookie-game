@@ -15,28 +15,30 @@ let items = [
     { name: "タイムマシン", cost: 9999999999, gps: 10000000, count: 0 }
 ];
 
-// スキルリスト（reqId は 前提スキルのID。nullなら最初から見える）
+// スキルリスト
 let skills = [
     { id: 0, name: "強化人差し指", cost: 500, desc: "クリック効率 2倍", unlocked: false, reqId: null },
     { id: 1, name: "おばあちゃんの眼鏡", cost: 1000, desc: "おばあちゃん効率 2倍", unlocked: false, reqId: null },
-    { id: 2, name: "鋼鉄のツルハシ", cost: 5000, desc: "カーソル効率 さらに2倍", unlocked: false, reqId: 0 }, // 0が必要
-    { id: 3, name: "ラッキー・クッキー", cost: 20000, desc: "10%でクリティカル(x10)", unlocked: false, reqId: 0 }, // 0が必要
-    { id: 4, name: "時間圧縮", cost: 100000, desc: "全生産スピード 1.2倍", unlocked: false, reqId: 1 } // 1が必要
+    { id: 2, name: "鋼鉄のツルハシ", cost: 5000, desc: "カーソル効率 さらに2倍", unlocked: false, reqId: 0 },
+    { id: 3, name: "ラッキー・クッキー", cost: 20000, desc: "10%でクリティカル(x10)", unlocked: false, reqId: 0 },
+    { id: 4, name: "時間圧縮", cost: 100000, desc: "全生産スピード 1.2倍", unlocked: false, reqId: 1 }
 ];
 
 let cookies = 0;
-const clickSound = new Audio('click.mp3');
+
+// 音の準備（1つのファイルをピッチ変更して使う）
+const baseSound = new Audio('click.mp3'); 
 
 // --- メイン処理 ---
 
 window.onload = function() {
     loadGame();
     createShop();
-    createSkills(); // スキル画面を作る
+    createSkills();
     updateDisplay();
 };
 
-// 1秒ごとのループ
+// 1秒ごとのループ（オートセーブ含む）
 setInterval(function() {
     let gps = calculateGPS();
     cookies += gps;
@@ -44,40 +46,33 @@ setInterval(function() {
     saveGame();
 }, 1000);
 
-// クッキーをクリックした時
+// クリック処理（音程変化つき）
 function clickCookie() {
-    // --- 音を鳴らす処理 ---
-    clickSound.currentTime = 0; // 音を巻き戻す（これで連打しても音が鳴ります）
-    clickSound.play();          // 再生！
-    // ----------------------
+    // --- 音を鳴らす ---
+    // 音を複製して、連打でも途切れないようにする
+    const sound = baseSound.cloneNode();
+    // 音程をランダムに変える (0.8倍〜1.2倍)
+    sound.playbackRate = 0.8 + (Math.random() * 0.4);
+    sound.play().catch(e => {
+        // 音声再生エラー（ブラウザ設定など）は無視
+        console.log("Audio play failed:", e);
+    });
+    // ------------------
 
     // 基本のクリック力
     let clickPower = 1;
 
     // スキル効果：クリック力アップ
-    if (typeof skills !== 'undefined') {
-        if (skills[0].unlocked) clickPower *= 2; // 強化人差し指
-        if (skills[2].unlocked) clickPower *= 2; // 鋼鉄のツルハシ
+    if (skills[0].unlocked) clickPower *= 2;
+    if (skills[2].unlocked) clickPower *= 2;
 
-        // スキル効果：クリティカル
-        if (skills[3].unlocked) {
-            if (Math.random() < 0.1) { 
-                clickPower *= 10;
-            }
+    // スキル効果：クリティカル
+    if (skills[3].unlocked) {
+        if (Math.random() < 0.1) { 
+            clickPower *= 10;
         }
     }
 
-    cookies += clickPower;
-    
-    // アニメーション用（もし画像を使っている場合）
-    const cookieImg = document.getElementById("big-cookie");
-    if (cookieImg) {
-        // 一瞬小さくしてまた戻すアニメーションのクラスなどをつける処理を入れることも可
-        // (CSSの:activeで設定していれば不要です)
-    }
-
-    updateDisplay();
-}
     cookies += clickPower;
     updateDisplay();
 }
@@ -92,7 +87,6 @@ function calculateGPS() {
         if (item.name === "おばあちゃん" && skills[1].unlocked) {
             production *= 2;
         }
-
         totalGps += production;
     });
 
@@ -112,12 +106,16 @@ function updateDisplay() {
 
     // ショップボタンの更新
     items.forEach((item, index) => {
-        document.getElementById(`cost-${index}`).innerText = Math.floor(item.cost);
-        document.getElementById(`count-${index}`).innerText = item.count;
-        document.getElementById(`btn-${index}`).disabled = cookies < item.cost;
+        // まだボタンが生成されていない場合は無視（エラー回避）
+        let costElem = document.getElementById(`cost-${index}`);
+        if(costElem) {
+            costElem.innerText = Math.floor(item.cost);
+            document.getElementById(`count-${index}`).innerText = item.count;
+            document.getElementById(`btn-${index}`).disabled = cookies < item.cost;
+        }
     });
 
-    // スキルボタンの更新（購入可否とロック状態）
+    // スキルボタンの更新
     createSkills(); 
 }
 
@@ -144,7 +142,7 @@ function createSkills() {
     container.innerHTML = "";
 
     skills.forEach((skill, index) => {
-        // 前提スキルを持っていないと表示されない（隠しスキル）
+        // 前提スキルを持っていないと表示されない
         if (skill.reqId !== null && !skills[skill.reqId].unlocked) {
             return; 
         }
@@ -155,7 +153,6 @@ function createSkills() {
         
         btn.onclick = () => buySkill(index);
         
-        // 購入済みなら「済」と表示
         if (skill.unlocked) {
             btn.innerHTML = `✅ ${skill.name}<br><small>習得済み</small>`;
             btn.disabled = true;
@@ -189,58 +186,44 @@ function buySkill(index) {
     }
 }
 
-// --- セーブ＆ロード ---
+// --- セーブ＆ロード＆リセット ---
 
 function saveGame() {
     const saveData = {
         cookies: cookies,
         items: items,
-        skills: skills // スキル状況も保存
+        skills: skills
     };
-    localStorage.setItem("myClickerSaveV3", JSON.stringify(saveData));
+    localStorage.setItem("myClickerSaveV4", JSON.stringify(saveData));
 }
 
 function loadGame() {
-    const data = JSON.parse(localStorage.getItem("myClickerSaveV3"));
+    const data = JSON.parse(localStorage.getItem("myClickerSaveV4"));
     if (data) {
         cookies = data.cookies;
-        
-        // アイテム復元
         data.items.forEach((savedItem, index) => {
             if (items[index]) {
                 items[index].cost = savedItem.cost;
                 items[index].count = savedItem.count;
             }
         });
-
-        // スキル復元
         if (data.skills) {
             data.skills.forEach((savedSkill, index) => {
-                if (skills[index]) {
-                    skills[index].unlocked = savedSkill.unlocked;
-                }
+                if (skills[index]) skills[index].unlocked = savedSkill.unlocked;
             });
         }
     }
 }
-// --- データ削除機能（時間停止版） ---
 
 function resetGame() {
     if (confirm("本当にデータを削除して最初からにしますか？")) {
-        
-        // 1. 自動セーブ（setInterval）を強制停止する！
-        // これをやらないと、消した直後にまたセーブされてしまいます
-        // ブラウザで動いているすべてのタイマーを止めます
+        // タイマー停止
         let highestId = window.setInterval(";");
         for (let i = 0; i < highestId; i++) {
             window.clearInterval(i);
         }
-
-        // 2. データを完全に消去する
-        // localStorage.clear() はブラウザに保存されたこのサイトのデータを全消しします
+        // データ削除
         localStorage.clear();
-
-        // 3. リロードする
         alert("データを完全にリセットしました。");
         location.reload();
     }
