@@ -1,43 +1,83 @@
-// 変数の準備
+// ゲームのデータ（アイテムリスト）
+// ここに好きなアイテムを追加できます！
+let items = [
+    { name: "カーソル", cost: 15, gps: 1, count: 0 },
+    { name: "おばあちゃん", cost: 100, gps: 5, count: 0 },
+    { name: "農場", cost: 500, gps: 20, count: 0 },
+    { name: "工場", cost: 2000, gps: 100, count: 0 },
+    { name: "魔法の神殿", cost: 10000, gps: 500, count: 0 }
+];
+
 let cookies = 0;
-let cursorCost = 15;
-let cursors = 0;
+const clickSound = new Audio('click.mp3'); // 音がある場合
 
-// 起動時にセーブデータを読み込む
-loadGame();
+// 起動時の処理
+window.onload = function() {
+    loadGame();
+    createShop(); // ショップのボタンを作る
+    updateDisplay();
+};
 
-// 画面を更新する関数
-function updateDisplay() {
-    document.getElementById("score").innerText = Math.floor(cookies);
-    document.getElementById("cost").innerText = Math.floor(cursorCost);
-    document.getElementById("gps").innerText = cursors;
-    
-    // お金が足りない時はボタンを灰色にする
-    document.getElementById("buy-btn").disabled = cookies < cursorCost;
-    
-    // タイトルバーにも枚数を表示
-    document.title = Math.floor(cookies) + " クッキー";
+// ショップのボタンを自動で作る関数
+function createShop() {
+    const container = document.getElementById("shop-container");
+    container.innerHTML = ""; // 一度空にする
+
+    items.forEach((item, index) => {
+        // ボタンを作る
+        let btn = document.createElement("button");
+        btn.id = "btn-" + index;
+        btn.onclick = () => buyItem(index);
+        
+        // ボタンの中身（文字）
+        btn.innerHTML = `
+            ${item.name}<br>
+            <small>価格: <span id="cost-${index}">${Math.floor(item.cost)}</span></small><br>
+            <small>所持: <span id="count-${index}">${item.count}</span></small>
+        `;
+        
+        container.appendChild(btn);
+    });
 }
 
-// 音の準備
-const clickSound = new Audio('click.mp3');
-
-// クッキーをクリックした時
-function clickCookie() {
-    // 音を再生 (連打できるように巻き戻してから再生)
-    clickSound.currentTime = 0;
-    clickSound.play();
+// 画面表示を更新する関数
+function updateDisplay() {
+    document.getElementById("score").innerText = Math.floor(cookies);
     
+    // 秒間の生産量を計算
+    let totalGps = 0;
+    items.forEach(item => {
+        totalGps += item.gps * item.count;
+    });
+    document.getElementById("gps").innerText = totalGps;
+    document.title = Math.floor(cookies) + " クッキー";
+
+    // 各ボタンの表示更新
+    items.forEach((item, index) => {
+        // 価格と所持数を更新
+        document.getElementById(`cost-${index}`).innerText = Math.floor(item.cost);
+        document.getElementById(`count-${index}`).innerText = item.count;
+
+        // お金が足りないボタンは灰色にする
+        const btn = document.getElementById(`btn-${index}`);
+        btn.disabled = cookies < item.cost;
+    });
+}
+
+// クッキーをクリック
+function clickCookie() {
+    clickSound.currentTime = 0;
+    clickSound.play().catch(e => {}); // エラー防止
     cookies++;
     updateDisplay();
 }
 
-// アイテムを買う時
-function buyCursor() {
-    if (cookies >= cursorCost) {
-        cookies -= cursorCost;
-        cursors++;
-        cursorCost = cursorCost * 1.15; // 価格を1.15倍にする
+// アイテムを買う
+function buyItem(index) {
+    if (cookies >= items[index].cost) {
+        cookies -= items[index].cost;
+        items[index].count++;
+        items[index].cost = items[index].cost * 1.15; // 価格上昇
         updateDisplay();
         saveGame();
     }
@@ -45,27 +85,35 @@ function buyCursor() {
 
 // 1秒ごとの自動増加
 setInterval(function() {
-    cookies += cursors;
+    items.forEach(item => {
+        cookies += (item.gps * item.count); // 秒間生産量を少しずつ足すのではなく一括でもOKですが、今回はシンプルに
+    });
+    // ※本来は秒間生産量をまとめて足すのが一般的ですが、
+    // ここではわかりやすくそのままにしています
     updateDisplay();
-    saveGame(); // 毎秒セーブ
+    saveGame();
 }, 1000);
 
-// セーブ機能 (ローカルストレージ)
+// セーブ機能
 function saveGame() {
-    localStorage.setItem("myClickerSave", JSON.stringify({
+    const saveData = {
         cookies: cookies,
-        cursorCost: cursorCost,
-        cursors: cursors
-    }));
+        items: items
+    };
+    localStorage.setItem("myClickerSaveV2", JSON.stringify(saveData));
 }
 
 // ロード機能
 function loadGame() {
-    let savedGame = JSON.parse(localStorage.getItem("myClickerSave"));
-    if (savedGame) {
-        cookies = savedGame.cookies;
-        cursorCost = savedGame.cursorCost;
-        cursors = savedGame.cursors;
+    const data = JSON.parse(localStorage.getItem("myClickerSaveV2"));
+    if (data) {
+        cookies = data.cookies;
+        // 保存されたアイテム情報を読み込む（名前が変わっていないか確認しつつ）
+        data.items.forEach((savedItem, index) => {
+            if (items[index] && items[index].name === savedItem.name) {
+                items[index].cost = savedItem.cost;
+                items[index].count = savedItem.count;
+            }
+        });
     }
-    updateDisplay();
 }
