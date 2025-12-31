@@ -1,0 +1,35 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>クッキークリッカー</title>
+    <link rel="stylesheet" href="style.css">
+    <link rel="manifest" href="manifest.json">
+</head>
+<body>
+    <div class="container">
+        <h1>クッキー: <span id="score">0</span> 枚</h1>
+        <p>秒間: <span id="gps">0</span> 枚</p>
+        
+        <button id="cookie-btn" onclick="clickCookie()">🍪 クッキーを焼く</button>
+
+        <hr>
+
+        <div class="shop">
+            <button id="buy-btn" onclick="buyCursor()">
+                カーソルを買う (価格: <span id="cost">15</span>)
+            </button>
+            <p><small>1秒ごとに1枚自動で焼きます</small></p>
+        </div>
+    </div>
+
+    <script src="script.js"></script>
+    <script>
+        // PWAのための設定
+        if ('serviceWorker' in navigator) {
+            navigator.serviceWorker.register('sw.js');
+        }
+    </script>
+</body>
+</html>

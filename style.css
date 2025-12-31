@@ -1,0 +1,31 @@
+body {
+    font-family: sans-serif;
+    text-align: center;
+    background-color: #f4f1ea;
+    color: #333;
+    touch-action: manipulation; /* スマホでの拡大防止 */
+}
+button {
+    cursor: pointer;
+    font-size: 1.2rem;
+    padding: 10px 20px;
+    border-radius: 8px;
+    border: none;
+    background-color: #d2691e;
+    color: white;
+    margin: 10px;
+}
+button:active {
+    transform: scale(0.95); /* 押した時に凹む演出 */
+}
+button:disabled {
+    background-color: #ccc;
+    cursor: not-allowed;
+}
+.shop {
+    margin-top: 20px;
+    background: white;
+    padding: 20px;
+    border-radius: 10px;
+    display: inline-block;
+}
