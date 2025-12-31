@@ -152,3 +152,79 @@ h2 {
     font-weight: bold;
     border: 2px solid #8b4513;
 }
+/* --- テーマ着せ替え機能 (CSS変数) --- */
+
+/* 1. デフォルトの色（基本） */
+:root {
+    --bg-color: #f0f8ff;       /* 背景：薄い青 */
+    --text-color: #333;        /* 文字：黒 */
+    --container-bg: rgba(255, 255, 255, 0.9); /* 白い板 */
+    --btn-bg: #4CAF50;         /* ボタン：緑 */
+    --btn-text: white;         /* ボタン文字：白 */
+    --special-btn-bg: linear-gradient(45deg, #ffd700, #ffb347); /* 転生ボタン */
+}
+
+/* 2. ダークモード（夜） */
+body.dark {
+    --bg-color: #1a1a1a;
+    --text-color: #e0e0e0;
+    --container-bg: rgba(50, 50, 50, 0.95);
+    --btn-bg: #555;
+    --btn-text: #fff;
+    --special-btn-bg: linear-gradient(45deg, #444, #222);
+}
+
+/* 3. 黄金モード（ゴージャス） */
+body.gold {
+    --bg-color: #fff8e1;
+    --text-color: #5d4037;
+    --container-bg: rgba(255, 248, 220, 0.9);
+    --btn-bg: #d2691e;
+    --btn-text: #fff;
+    --special-btn-bg: linear-gradient(45deg, #ffd700, #daa520);
+}
+
+/* 4. 桜モード（かわいい） */
+body.sakura {
+    --bg-color: #ffe4e1;
+    --text-color: #c71585;
+    --container-bg: rgba(255, 240, 245, 0.9);
+    --btn-bg: #ff69b4;
+    --btn-text: #fff;
+    --special-btn-bg: linear-gradient(45deg, #ffb7c5, #ff69b4);
+}
+
+/* --- 変数を適用する設定 --- */
+
+/* 全体の背景と文字色を変数に置き換え */
+body {
+    background-color: var(--bg-color);
+    color: var(--text-color);
+    transition: background-color 0.5s, color 0.5s; /* じわっと変わるアニメーション */
+}
+
+/* メインの白い枠を変数に置き換え */
+.container {
+    background-color: var(--container-bg);
+    transition: background-color 0.5s;
+}
+
+/* すべてのボタンを変数に対応させる */
+button {
+    background: var(--btn-bg);
+    color: var(--btn-text);
+    border: 1px solid rgba(0,0,0,0.1);
+    transition: all 0.3s;
+}
+
+/* 転生ボタンなどの特別ボタン */
+.special-btn {
+    background: var(--special-btn-bg) !important;
+}
+
+/* テーマ選択ボタン自体の色 */
+.theme-btn { padding: 5px 10px; margin: 2px; cursor: pointer; border-radius: 5px; }
+.theme-blue { background: #f0f8ff; color: #333; border: 1px solid #ccc; }
+.theme-black { background: #333; color: #fff; }
+.theme-gold { background: #ffd700; color: #5d4037; }
+.theme-pink { background: #ffb7c5; color: #c71585; }
