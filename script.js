@@ -27,7 +27,7 @@ let skills = [
 let cookies = 0;
 
 // 音の準備（1つのファイルをピッチ変更して使う）
-const baseSound = new Audio('click.mp3'); 
+const baseSound = new Audio('click1.mp3');
 
 // --- メイン処理 ---
 
