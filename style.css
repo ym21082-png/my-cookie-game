@@ -107,3 +107,26 @@ h2 {
 #big-cookie:active {
     transform: scale(0.95); /* クリックすると少し縮む（押した感） */
 }
+/* --- 転生エリアのデザイン --- */
+.prestige-section {
+    background-color: #fff8e1;
+    padding: 15px;
+    border-radius: 10px;
+    border: 2px solid #ffd700; /* 金色の枠 */
+    margin: 20px 0;
+}
+
+.special-btn {
+    background: linear-gradient(45deg, #ffd700, #ffb347);
+    color: white;
+    font-weight: bold;
+    border: none;
+    padding: 10px 20px;
+    border-radius: 20px;
+    cursor: pointer;
+    box-shadow: 0 4px 6px rgba(0,0,0,0.2);
+}
+
+.special-btn:hover {
+    transform: scale(1.05);
+}
