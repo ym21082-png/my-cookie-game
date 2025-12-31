@@ -19,8 +19,15 @@ function updateDisplay() {
     document.title = Math.floor(cookies) + " クッキー";
 }
 
+// 音の準備
+const clickSound = new Audio('click.mp3');
+
 // クッキーをクリックした時
 function clickCookie() {
+    // 音を再生 (連打できるように巻き戻してから再生)
+    clickSound.currentTime = 0;
+    clickSound.play();
+    
     cookies++;
     updateDisplay();
 }
