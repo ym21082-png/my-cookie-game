@@ -210,40 +210,25 @@ function loadGame() {
         }
     }
 }
-// --- データ削除機能（価格リセット対応版） ---
+// --- データ削除機能（時間停止版） ---
 
 function resetGame() {
     if (confirm("本当にデータを削除して最初からにしますか？")) {
         
-        // 1. クッキーを0にする
-        cookies = 0;
-
-        // 2. アイテムリストを「初期状態」で上書きする
-        // (こうすることで、価格も最初の安い値段に戻ります)
-        items = [
-            { name: "カーソル", cost: 15, gps: 1, count: 0 },
-            { name: "おばあちゃん", cost: 100, gps: 5, count: 0 },
-            { name: "農場", cost: 500, gps: 20, count: 0 },
-            { name: "工場", cost: 2000, gps: 100, count: 0 },
-            { name: "見習いコマンダー", cost: 10000, gps: 500, count: 0 },
-            { name: "地面", cost: 40000, gps: 2000, count: 0 },
-            { name: "水力生成", cost: 200000, gps: 8000, count: 0 },
-            { name: "太陽光生成", cost: 1500000, gps: 40000, count: 0 },
-            { name: "マントル", cost: 50000000, gps: 200000, count: 0 },
-            { name: "宇宙ステーション", cost: 700000000, gps: 1500000, count: 0 },
-            { name: "タイムマシン", cost: 9999999999, gps: 10000000, count: 0 }
-        ];
-
-        // 3. スキルもリセット
-        if (typeof skills !== 'undefined') {
-            skills.forEach(skill => skill.unlocked = false);
+        // 1. 自動セーブ（setInterval）を強制停止する！
+        // これをやらないと、消した直後にまたセーブされてしまいます
+        // ブラウザで動いているすべてのタイマーを止めます
+        let highestId = window.setInterval(";");
+        for (let i = 0; i < highestId; i++) {
+            window.clearInterval(i);
         }
 
-        // 4. この「新品の状態」を保存する
-        saveGame();
+        // 2. データを完全に消去する
+        // localStorage.clear() はブラウザに保存されたこのサイトのデータを全消しします
+        localStorage.clear();
 
-        // 5. リロード
-        alert("データをリセットしました。価格も初期に戻ります。");
+        // 3. リロードする
+        alert("データを完全にリセットしました。");
         location.reload();
     }
 }
