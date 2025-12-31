@@ -44,27 +44,40 @@ setInterval(function() {
     saveGame();
 }, 1000);
 
-// クリック処理
+// クッキーをクリックした時
 function clickCookie() {
-    clickSound.currentTime = 0;
-    clickSound.play().catch(e => {});
+    // --- 音を鳴らす処理 ---
+    clickSound.currentTime = 0; // 音を巻き戻す（これで連打しても音が鳴ります）
+    clickSound.play();          // 再生！
+    // ----------------------
 
     // 基本のクリック力
     let clickPower = 1;
 
     // スキル効果：クリック力アップ
-    if (skills[0].unlocked) clickPower *= 2; // 強化人差し指
-    if (skills[2].unlocked) clickPower *= 2; // 鋼鉄のツルハシ
+    if (typeof skills !== 'undefined') {
+        if (skills[0].unlocked) clickPower *= 2; // 強化人差し指
+        if (skills[2].unlocked) clickPower *= 2; // 鋼鉄のツルハシ
 
-    // スキル効果：クリティカル (ラッキー・クッキー)
-    if (skills[3].unlocked) {
-        if (Math.random() < 0.1) { // 10%の確率
-            clickPower *= 10;
-            console.log("Critical Hit!");
-            // ここで文字を出したりエフェクトを出すとさらに良い
+        // スキル効果：クリティカル
+        if (skills[3].unlocked) {
+            if (Math.random() < 0.1) { 
+                clickPower *= 10;
+            }
         }
     }
 
+    cookies += clickPower;
+    
+    // アニメーション用（もし画像を使っている場合）
+    const cookieImg = document.getElementById("big-cookie");
+    if (cookieImg) {
+        // 一瞬小さくしてまた戻すアニメーションのクラスなどをつける処理を入れることも可
+        // (CSSの:activeで設定していれば不要です)
+    }
+
+    updateDisplay();
+}
     cookies += clickPower;
     updateDisplay();
 }
