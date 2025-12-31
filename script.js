@@ -62,20 +62,21 @@ function addCookies(amount) {
 
 // クリック処理
 function clickCookie() {
-    // 音再生
+    // 音再生（省略）
     const sound = baseSound.cloneNode();
     sound.playbackRate = 0.8 + (Math.random() * 0.4);
     sound.play().catch(e => console.log(e));
 
-    // クリック力計算
     let clickPower = 1;
     if (skills[0].unlocked) clickPower *= 2;
     if (skills[2].unlocked) clickPower *= 2;
     if (skills[3].unlocked && Math.random() < 0.1) clickPower *= 10;
 
-    // ★転生ボーナスを適用 (1枚につき+10%)
     let multiplier = 1 + (prestigeLevel * 0.1);
     clickPower *= multiplier;
+
+    // ★追加：難易度倍率をかける
+    clickPower *= difficulty;
 
     addCookies(clickPower);
 }
@@ -91,9 +92,10 @@ function calculateGPS() {
 
     if (skills[4].unlocked) totalGps *= 1.2;
 
-    // ★転生ボーナスを適用
     let multiplier = 1 + (prestigeLevel * 0.1);
-    return totalGps * multiplier;
+    
+    // ★追加：難易度倍率をかける
+    return totalGps * multiplier * difficulty;
 }
 
 // 画面更新
