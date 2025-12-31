@@ -210,3 +210,18 @@ function loadGame() {
         }
     }
 }
+// --- データ削除機能 ---
+
+function resetGame() {
+    // 1回目の確認
+    if (confirm("【警告】\n本当にデータを削除しますか？\n今のクッキーやアイテムはすべて消えてしまいます！")) {
+        // 念のため2回目の確認
+        if (confirm("本当に本当によろしいですか？\nこの操作は取り消せません。")) {
+            // データを削除する
+            localStorage.removeItem("myClickerSaveV3");
+            
+            // ページを再読み込みして最初からにする
+            location.reload();
+        }
+    }
+}
