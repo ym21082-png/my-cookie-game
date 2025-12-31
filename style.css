@@ -29,3 +29,43 @@ button:disabled {
     border-radius: 10px;
     display: inline-block;
 }
+/* --- ここから下を追加 --- */
+
+.skill-container {
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: center;
+    gap: 10px;
+    margin-top: 20px;
+    background-color: #e6e6fa; /* 薄紫色の背景 */
+    padding: 15px;
+    border-radius: 10px;
+}
+
+.skill-btn {
+    background-color: #6a5acd; /* スレートブルー */
+    width: 140px;
+    height: 140px;
+    font-size: 0.9rem;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    border: 2px solid #483d8b;
+}
+
+.skill-btn:disabled {
+    background-color: #a9a9a9;
+    border-color: #696969;
+}
+
+.skill-btn.purchased {
+    background-color: #32cd32; /* 買ったやつは緑色 */
+    cursor: default;
+    opacity: 0.8;
+}
+
+h2 {
+    margin-top: 30px;
+    color: #555;
+}
