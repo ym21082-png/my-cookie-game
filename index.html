@@ -5,39 +5,44 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>クッキークリッカー</title>
     <link rel="stylesheet" href="style.css">
-    <link rel="manifest" href="manifest.json">
 </head>
 <body>
+
     <div class="container">
         <h1>クッキー: <span id="score">0</span> 枚</h1>
         <p>秒間: <span id="gps">0</span> 枚</p>
-        
+
         <div class="cookie-container">
-    <img src="cookie.png" id="big-cookie" onclick="clickCookie()">
-</div>
+            <img src="cookie.png" id="big-cookie" onclick="clickCookie()" alt="🍪">
+        </div>
 
         <hr>
 
-        <h2>🧪 研究所</h2>
-        <div id="skill-container" class="skill-container"></div>
+        <div class="section-title">🧪 研究所</div>
+        <div id="skill-container" class="scroll-container"></div>
+
+        <div class="section-title">🛒 ショップ</div>
+        <div id="shop-container" class="scroll-container"></div>
 
         <hr>
-
-        <h2>🛒 ショップ</h2>
-        <div id="shop-container" class="shop"></div>
-    </div>
-    <div class="settings">
+        
+        <div class="settings">
             <button id="reset-btn" onclick="resetGame()">🗑️ データを削除して最初から</button>
         </div>
+
+    </div>
+
     <script src="script.js"></script>
-<script>
-        // 念のため、古いServiceWorkerがいたら削除するコード
-        navigator.serviceWorker.getRegistrations().then(function(registrations) {
-            for(let registration of registrations) {
-                registration.unregister();
-            }
-        });
+    
+    <script>
+        if(window.navigator && navigator.serviceWorker) {
+            navigator.serviceWorker.getRegistrations()
+            .then(function(registrations) {
+                for(let registration of registrations) {
+                    registration.unregister();
+                }
+            });
+        }
     </script>
-</body>
 </body>
 </html>
