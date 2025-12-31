@@ -14,6 +14,11 @@ let items = [
     { name: "宇宙ステーション", cost: 700000000, gps: 1500000, count: 0 },
     { name: "タイムマシン", cost: 9999999999, gps: 10000000, count: 0 }
 ];
+// ... items配列などの下に ...
+
+// 難易度設定
+let difficulty = 1.0; // 1.0=ノーマル, 2.0=イージー, 0.5=ハード
+let difficultyName = "normal";
 
 // スキルリスト
 let skills = [
