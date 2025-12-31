@@ -4,12 +4,20 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>クッキークリッカー</title>
-    <link rel="stylesheet" href="style.css">
+   <link rel="stylesheet" href="style.css">
     <link rel="manifest" href="manifest.json">
 </head>
 <body>
 
     <div class="container">
+
+        <div class="mode-select">
+            <p>現在のモード: <span id="current-mode-name" style="font-weight:bold;">ノーマル</span></p>
+            <button onclick="setMode('easy')" class="mode-btn" id="mode-easy">イージー</button>
+            <button onclick="setMode('normal')" class="mode-btn active" id="mode-normal">ノーマル</button>
+            <button onclick="setMode('hard')" class="mode-btn" id="mode-hard">ハード</button>
+            <button onclick="setMode('veryhard')" class="mode-btn" id="mode-veryhard">ベリーハード</button>
+        </div>
         <h1>クッキー: <span id="score">0</span> 枚</h1>
         <p>秒間: <span id="gps">0</span> 枚</p>
 
