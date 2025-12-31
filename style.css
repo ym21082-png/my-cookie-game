@@ -130,3 +130,25 @@ h2 {
 .special-btn:hover {
     transform: scale(1.05);
 }
+/* --- 難易度選択エリア --- */
+.mode-select {
+    margin-bottom: 20px;
+}
+
+.mode-btn {
+    background-color: #ddd;
+    border: none;
+    padding: 5px 10px;
+    margin: 0 2px;
+    cursor: pointer;
+    border-radius: 5px;
+    font-size: 12px;
+}
+
+/* 選ばれているボタンのデザイン */
+.mode-btn.active {
+    background-color: #d2691e;
+    color: white;
+    font-weight: bold;
+    border: 2px solid #8b4513;
+}
