@@ -210,20 +210,25 @@ function loadGame() {
         }
     }
 }
-// --- データ削除機能（修正版） ---
-
 function resetGame() {
-    // 1回目の確認
-    if (confirm("【警告】\n本当にデータを削除しますか？")) {
-        // 2回目の確認
-        if (confirm("これまでの努力がすべて消えます。\n本当によろしいですか？")) {
-            
-            // ★ここを変更しました★
-            // 特定のデータだけでなく、このサイトの全データを消去します
-            localStorage.clear();
-            
-            // ページを再読み込み
-            location.reload();
+    if (confirm("本当にデータを削除しますか？")) {
+        // 1. オートセーブのループを止める（重要！）
+        // これをしないと、消した直後にまたセーブされてしまうことがあります
+        // （setIntervalのIDを変数に入れていないので、強引にすべてのIDを止めます）
+        let highestIntervalId = setInterval(";");
+        for (let i = 0 ; i < highestIntervalId ; i++) {
+            clearInterval(i);
         }
+
+        // 2. データを消す
+        localStorage.clear();
+        
+        // 3. 変数も全部0にする（念には念を）
+        cookies = 0;
+        items.forEach(item => item.count = 0);
+
+        // 4. 強制的にリロード
+        alert("データを削除しました。リロードします。");
+        location.reload();
     }
 }
