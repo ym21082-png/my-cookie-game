@@ -19,7 +19,8 @@ let items = [
 // 難易度設定
 let difficulty = 1.0; // 1.0=ノーマル, 2.0=イージー, 0.5=ハード
 let difficultyName = "normal";
-
+// テーマ設定
+let currentTheme = "default";
 // スキルリスト
 let skills = [
     { id: 0, name: "強化人差し指", cost: 500, desc: "クリック効率 2倍", unlocked: false, reqId: null },
