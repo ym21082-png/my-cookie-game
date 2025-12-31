@@ -301,13 +301,28 @@ function loadGame() {
 }
 
 function resetGame() {
-    if (confirm("本当にデータを削除して最初からにしますか？")) {
+    if (confirm("【警告】\n本当に全てのデータを削除しますか？\n（天界チップも含めて全て消えます）")) {
+        // 1. オートセーブのタイマーを全て止める（超重要）
         let highestId = window.setInterval(";");
         for (let i = 0; i < highestId; i++) {
             window.clearInterval(i);
         }
+
+        // 2. 変数を強制的に0にする
+        cookies = 0;
+        totalCookies = 0;
+        prestigeLevel = 0;
+        items.forEach(item => item.count = 0);
+        skills.forEach(skill => skill.unlocked = false);
+
+        // 3. 空の状態で一度上書き保存する（復活防止）
+        localStorage.setItem("myClickerSaveV5", null);
+        
+        // 4. ストレージを完全に空にする
         localStorage.clear();
-        alert("データを完全にリセットしました。");
+
+        // 5. 完了メッセージを出してからリロード
+        alert("データを完全に初期化しました。");
         location.reload();
     }
 }
