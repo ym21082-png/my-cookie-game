@@ -258,7 +258,7 @@ function setMode(mode) {
     updateDisplay();
 }
 
-// --- セーブ＆ロード＆リセット（難易度対応版） ---
+// --- セーブ＆ロード（テーマ対応版） ---
 
 function saveGame() {
     const saveData = {
@@ -267,10 +267,11 @@ function saveGame() {
         prestigeLevel: prestigeLevel,
         items: items,
         skills: skills,
-        // ★難易度も保存する
         difficultyMode: difficultyName === "イージー" ? 'easy' : 
                         difficultyName === "ハード" ? 'hard' : 
-                        difficultyName === "ベリーハード" ? 'veryhard' : 'normal'
+                        difficultyName === "ベリーハード" ? 'veryhard' : 'normal',
+        // ★テーマも保存
+        theme: currentTheme
     };
     localStorage.setItem("myClickerSaveV5", JSON.stringify(saveData));
 }
@@ -294,6 +295,15 @@ function loadGame() {
             });
         }
         
+        setMode(data.difficultyMode || 'normal');
+        
+        // ★保存されたテーマを読み込む
+        changeTheme(data.theme || 'default');
+    } else {
+        setMode('normal');
+        changeTheme('default');
+    }
+}
         // ★保存された難易度を読み込む（なければノーマル）
         setMode(data.difficultyMode || 'normal');
     } else {
@@ -326,4 +336,17 @@ function resetGame() {
         alert("データを完全に初期化しました。");
         location.reload();
     }
+}
+// --- テーマ変更機能 ---
+
+function changeTheme(themeName) {
+    currentTheme = themeName;
+    document.body.className = ""; // 一旦クラスを空にする
+    
+    if (themeName !== "default") {
+        document.body.classList.add(themeName); // "dark" や "gold" を追加
+    }
+    
+    // 転生ボタンなどの色も強制的に再描画してCSS変数を適用させる
+    updateDisplay(); 
 }
