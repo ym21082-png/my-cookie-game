@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>クッキークリッカー</title>
+    <title>That clicker game-style clicker</title>
     <link rel="stylesheet" href="style.css">
     <link rel="manifest" href="manifest.json">
 </head>
@@ -16,17 +16,12 @@
 
         <hr>
 
-        <div class="shop">
-            <button id="buy-btn" onclick="buyCursor()">
-                カーソルを買う (価格: <span id="cost">15</span>)
-            </button>
-            <p><small>1秒ごとに1枚自動で焼きます</small></p>
-        </div>
+        <h2>ショップ</h2>
+        <div id="shop-container" class="shop"></div>
     </div>
 
     <script src="script.js"></script>
     <script>
-        // PWAのための設定
         if ('serviceWorker' in navigator) {
             navigator.serviceWorker.register('sw.js');
         }
