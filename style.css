@@ -84,3 +84,26 @@ h2 {
 #reset-btn:hover {
     background-color: #cc0000;
 }
+/* --- 巨大クッキーのデザイン --- */
+
+.cookie-container {
+    margin: 30px 0;
+    text-align: center; /* 真ん中に置く */
+}
+
+#big-cookie {
+    width: 250px;       /* 大きさ */
+    cursor: pointer;    /* マウスを乗せると指マークに */
+    transition: transform 0.1s; /* 動くスピード */
+    
+    /* 影をつけて浮いているように見せる */
+    filter: drop-shadow(0 5px 10px rgba(0,0,0,0.3));
+}
+
+#big-cookie:hover {
+    transform: scale(1.05); /* マウスを乗せると少し大きくなる */
+}
+
+#big-cookie:active {
+    transform: scale(0.95); /* クリックすると少し縮む（押した感） */
+}
