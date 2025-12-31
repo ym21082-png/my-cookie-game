@@ -28,10 +28,14 @@
             <button id="reset-btn" onclick="resetGame()">🗑️ データを削除して最初から</button>
         </div>
     <script src="script.js"></script>
-    <script>
-        if ('serviceWorker' in navigator) {
-            navigator.serviceWorker.register('sw.js');
-        }
+<script>
+        // 念のため、古いServiceWorkerがいたら削除するコード
+        navigator.serviceWorker.getRegistrations().then(function(registrations) {
+            for(let registration of registrations) {
+                registration.unregister();
+            }
+        });
     </script>
+</body>
 </body>
 </html>
