@@ -227,25 +227,58 @@ function buySkill(index) {
     }
 }
 
-// --- セーブ＆ロード＆リセット ---
+// --- 難易度変更機能 ---
+
+function setMode(mode) {
+    // ボタンの見た目をリセット
+    document.querySelectorAll('.mode-btn').forEach(btn => btn.classList.remove('active'));
+    
+    // モードごとの設定
+    if (mode === 'easy') {
+        difficulty = 2.0;
+        difficultyName = "イージー";
+        document.getElementById('mode-easy').classList.add('active');
+    } else if (mode === 'normal') {
+        difficulty = 1.0;
+        difficultyName = "ノーマル";
+        document.getElementById('mode-normal').classList.add('active');
+    } else if (mode === 'hard') {
+        difficulty = 0.5;
+        difficultyName = "ハード";
+        document.getElementById('mode-hard').classList.add('active');
+    } else if (mode === 'veryhard') {
+        difficulty = 0.2;
+        difficultyName = "ベリーハード";
+        document.getElementById('mode-veryhard').classList.add('active');
+    }
+
+    // 画面の文字更新
+    document.getElementById('current-mode-name').innerText = difficultyName;
+    updateDisplay();
+}
+
+// --- セーブ＆ロード＆リセット（難易度対応版） ---
 
 function saveGame() {
     const saveData = {
         cookies: cookies,
-        totalCookies: totalCookies, // 累計も保存
-        prestigeLevel: prestigeLevel, // チップも保存
+        totalCookies: totalCookies,
+        prestigeLevel: prestigeLevel,
         items: items,
-        skills: skills
+        skills: skills,
+        // ★難易度も保存する
+        difficultyMode: difficultyName === "イージー" ? 'easy' : 
+                        difficultyName === "ハード" ? 'hard' : 
+                        difficultyName === "ベリーハード" ? 'veryhard' : 'normal'
     };
     localStorage.setItem("myClickerSaveV5", JSON.stringify(saveData));
 }
 
 function loadGame() {
-    const data = JSON.parse(localStorage.getItem("myClickerSaveV5")); // V5に変更
+    const data = JSON.parse(localStorage.getItem("myClickerSaveV5"));
     if (data) {
         cookies = data.cookies;
-        // データがない場合は0にする（古いデータからの引き継ぎ対策）
-        totalCookies = data.totalCookies || data.cookies; 
+        totalCookies = data.totalCookies || data.cookies;
         prestigeLevel = data.prestigeLevel || 0;
 
         data.items.forEach((savedItem, index) => {
@@ -259,6 +292,11 @@ function loadGame() {
                 if (skills[index]) skills[index].unlocked = savedSkill.unlocked;
             });
         }
+        
+        // ★保存された難易度を読み込む（なければノーマル）
+        setMode(data.difficultyMode || 'normal');
+    } else {
+        setMode('normal'); // 初回プレイ時
     }
 }
 
