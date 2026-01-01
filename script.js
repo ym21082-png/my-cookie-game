@@ -479,6 +479,7 @@ function saveGame() {
         totalCookies: totalCookies,
         lifetimeCookies: lifetimeCookies,
         prestigeLevel: prestigeLevel,
+        lastSaveTime: Date.now(), // 現在時刻（ミリ秒）を記録
         items: items.map(i => ({ count: i.count, cost: i.cost, unlocked: i.unlocked })),
         skills: skills.map(s => ({ unlocked: s.unlocked })),
         achievements: achievements.map(a => ({ id: a.id, unlocked: a.unlocked })),
@@ -527,6 +528,25 @@ updateAchievementDisplay(); // 起動時にリストを表示
 
         setMode(data.difficultyMode || 'normal');
         changeTheme(data.theme || 'default');
+        if (data.lastSaveTime) {
+            const now = Date.now();
+            // 経過時間（秒）を計算
+            const secondsOffline = (now - data.lastSaveTime) / 1000;
+
+            // 1分以上（60秒）経過していたら計算する
+            if (secondsOffline > 60) {
+                let gps = calculateGPS();
+                
+                // オフライン効率50%（0.5）
+                const offlineProduction = Math.floor(secondsOffline * gps * 0.5);
+
+                if (offlineProduction > 0) {
+                    addCookies(offlineProduction);
+                    // 画面にメッセージを出す
+                    alert(`Welcome back!\nYou were gone for ${formatTime(secondsOffline)}.\nYour bakers produced ${formatNumber(offlineProduction)} cookies while you were away.`);
+                }
+            }
+        }
     } else {
         setMode('normal');
         items[0].unlocked = true; 
@@ -665,3 +685,19 @@ window.onload = function() {
     }, 100);
     setInterval(saveGame, 10000);
 };
+// 秒数を「1h 20m 30s」のような読みやすい形式にする関数
+function formatTime(seconds) {
+    if (seconds < 60) return Math.floor(seconds) + "s";
+    
+    let minutes = Math.floor(seconds / 60);
+    let hours = Math.floor(minutes / 60);
+    let days = Math.floor(hours / 24);
+
+    seconds = Math.floor(seconds % 60);
+    minutes = minutes % 60;
+    hours = hours % 24;
+
+    if (days > 0) return `${days}d ${hours}h`;
+    if (hours > 0) return `${hours}h ${minutes}m`;
+    return `${minutes}m ${seconds}s`;
+}
