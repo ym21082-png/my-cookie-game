@@ -5,13 +5,11 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>クッキークリッカー改</title>
     <link rel="stylesheet" href="style.css">
-    <link rel="manifest" href="manifest.json">
     <link href="https://fonts.googleapis.com/css2?family=Merriweather:wght@400;700&display=swap" rel="stylesheet">
 </head>
 <body class="default">
 
     <div id="game-container">
-
         <div id="left-column">
             <div class="header-info">
                 <div id="cookies-count"><span id="score">0</span> cookies</div>
@@ -69,7 +67,7 @@
 
                         <div class="prestige-section">
                             <p>Heavenly Chips: <span id="prestige-chips">0</span></p>
-                            <p class="small-text">(Bonus: +<span id="prestige-effect">0</span>%)</p>
+                            <p class="small-text">(Ascend to get: +<span id="pending-chips">0</span>)</p>
                             <button onclick="prestige()" class="special-btn full-width">👼 Ascend</button>
                         </div>
 
@@ -77,13 +75,30 @@
                     </div>
                 </details>
             </div>
-        </div> <div id="right-column">
+        </div>
+
+        <div id="right-column">
             <div class="store-header">
                 <h2>🛒 Store</h2>
             </div>
             <div id="shop-container" class="scroll-box shop-list"></div>
         </div>
+    </div>
 
+    <div id="ascension-screen">
+        <div class="stars-bg"></div>
+        <div class="ascension-header">
+            <h1>🌌 Ascension Tree</h1>
+            <p>Heavenly Chips: <span id="heavenly-currency" style="color:#ffcc00; font-weight:bold; font-size:1.5em;">0</span></p>
+            <button class="reincarnate-btn" onclick="finishAscension()">✨ Reincarnate (Start New Life)</button>
+        </div>
+        <div id="heavenly-upgrades-container">
+            </div>
+    </div>
+
+    <script src="script.js"></script>
+</body>
+</html>
     </div>
 
     <script src="script.js"></script>
