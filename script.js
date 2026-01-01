@@ -541,26 +541,51 @@ function scheduleNextGoldenCookie() {
     setTimeout(spawnGoldenCookie, randomTime);
 }
 
+let buffTimer = null; // タイマー管理用（連続で引いたときのリセット用）
+
 function clickGoldenCookie(event) {
-    // ボーナス：現在の秒間生産量(GPS) × 900秒分（15分分）
-    // もしGPSが0なら、最低でも777クッキーあげる
-    let gps = calculateGPS();
-    let bonus = Math.max(777, gps * 900);
-
-    // ★天界スキル「Angelic Luck (h5)」でさらに2倍にするならここに追加してもOK
+    // 乱数で効果を決める（0〜0.99...）
+    const rand = Math.random();
     
-    addCookies(bonus);
-
-    // 演出：「Lucky!」と「+ボーナス額」を出す
-    createFloatingText(event.clientX, event.clientY, "Lucky!");
-    setTimeout(() => {
-        createFloatingText(event.clientX, event.clientY - 30, "+" + formatNumber(bonus));
-    }, 200);
-
-    // 音を鳴らす（クリック音を流用）
+    // 音を鳴らす
     const sound = baseSound.cloneNode();
-    sound.playbackRate = 1.5; // 少し高い音にする
+    sound.playbackRate = 1.5;
     sound.play().catch(() => {});
+
+    // --- パターンA：Frenzy (7倍モード) ---
+    // 50%の確率 (rand < 0.5) で発動
+    if (rand < 0.5) {
+        buffMultiplier = 7;
+        updateDisplay(); // 画面の数字(CpS)をすぐに更新！
+        
+        // 演出
+        createFloatingText(event.clientX, event.clientY, "Frenzy! (x7)");
+        createFloatingText(event.clientX, event.clientY + 30, "for 77 seconds");
+        
+        // もし既に7倍中なら、前のタイマーを消して時間をリセット
+        if (buffTimer) clearTimeout(buffTimer);
+
+        // 77秒後に元に戻す予約
+        buffTimer = setTimeout(() => {
+            buffMultiplier = 1;
+            updateDisplay(); // 元に戻ったことを画面に反映
+            createFloatingText(window.innerWidth/2, window.innerHeight/2, "Frenzy ended...");
+        }, 77000);
+    } 
+    // --- パターンB：Lucky (大量ゲット) ---
+    else {
+        let gps = calculateGPS();
+        // 7倍中なら、その7倍のGPSを基準にボーナスをあげる（超お得！）
+        let bonus = Math.max(777, gps * 900);
+        
+        addCookies(bonus);
+
+        // 演出
+        createFloatingText(event.clientX, event.clientY, "Lucky!");
+        setTimeout(() => {
+            createFloatingText(event.clientX, event.clientY - 30, "+" + formatNumber(bonus));
+        }, 200);
+    }
 }
 window.onload = function() {
     loadGame();
