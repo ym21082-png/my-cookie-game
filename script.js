@@ -545,22 +545,34 @@ function loadGame() {
         totalClicks = data.totalClicks || 0;
         startTime = data.startTime || Date.now();
 
+        // ★★★ ここが最重要修正ポイント！ ★★★
         if (data.items) {
             data.items.forEach((saved, i) => {
-                if (items[i]) { items[i].count = saved.count; items[i].cost = saved.cost; items[i].unlocked = saved.unlocked; }
+                if (items[i]) {
+                    // 個数とロック状態だけ復元する
+                    items[i].count = saved.count;
+                    items[i].unlocked = saved.unlocked;
+                    
+                    // 値段はセーブデータを信用せず、正しい計算式で作り直す！
+                    // (基本価格 × 1.15 の n乗)
+                    items[i].cost = Math.ceil(items[i].baseCost * Math.pow(1.15, items[i].count));
+                }
             });
         }
+        // ★★★ 修正ここまで ★★★
+
         if (data.skills) {
             data.skills.forEach((saved, i) => { if (skills[i]) skills[i].unlocked = saved.unlocked; });
         }
         if (data.achievements) {
-    data.achievements.forEach(saved => {
-        const ach = achievements.find(a => a.id === saved.id);
-        if (ach) ach.unlocked = saved.unlocked;
-    });
-}
-updateAchievementDisplay(); // 起動時にリストを表示
-        // ★天界データのロード
+            data.achievements.forEach(saved => {
+                const ach = achievements.find(a => a.id === saved.id);
+                if (ach) ach.unlocked = saved.unlocked;
+            });
+        }
+        updateAchievementDisplay(); 
+
+        // 天界データのロード
         if (data.heavenlyUpgrades) {
             data.heavenlyUpgrades.forEach(saved => {
                 const upg = heavenlyUpgrades.find(u => u.id === saved.id);
@@ -570,21 +582,21 @@ updateAchievementDisplay(); // 起動時にリストを表示
 
         setMode(data.difficultyMode || 'normal');
         changeTheme(data.theme || 'default');
+        
+        // オフラインボーナス計算
         if (data.lastSaveTime) {
             const now = Date.now();
-            // 経過時間（秒）を計算
             const secondsOffline = (now - data.lastSaveTime) / 1000;
 
-            // 1分以上（60秒）経過していたら計算する
             if (secondsOffline > 60) {
                 let gps = calculateGPS();
-                
-                // オフライン効率50%（0.5）
+                // 天界スキルh4を持っていたらオフライン生産有効（なければ0）
+                // ※以前のコードだと無条件でしたが、天界スキルの説明に合わせて修正する場合はここを調整
+                // 今回はシンプルに「誰でも50%」のままにしておきます
                 const offlineProduction = Math.floor(secondsOffline * gps * 0.5);
 
                 if (offlineProduction > 0) {
                     addCookies(offlineProduction);
-                    // 画面にメッセージを出す
                     alert(`Welcome back!\nYou were gone for ${formatTime(secondsOffline)}.\nYour bakers produced ${formatNumber(offlineProduction)} cookies while you were away.`);
                 }
             }
