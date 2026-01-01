@@ -367,3 +367,10 @@ body.default #left-column {
     background-color: #87ceeb;
     animation: flowSpace 40s linear infinite;
 }
+/* --- 追加修正：ダークモード時の所持数（右の数字）を見えるようにする --- */
+body.dark .item-owned {
+    color: rgba(255, 255, 255, 0.2); /* 薄い白 */
+}
+body.dark .store-item.affordable .item-owned {
+    color: rgba(100, 255, 100, 0.2); /* 買えるときは薄い緑 */
+}
