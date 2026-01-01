@@ -171,27 +171,109 @@ summary { cursor: pointer; font-weight: bold; outline: none; }
 ::-webkit-scrollbar-thumb { background: #444; border-radius: 5px; }
 ::-webkit-scrollbar-thumb:hover { background: #555; }
 
-/* --- テーマ着せ替え (CSS変数の上書き) --- */
-/* ダーク（デフォルトと同じなので省略） */
-/* 黄金 */
+/* =========================================
+   アニメーション定義 (背景を動かす魔法)
+   ========================================= */
+
+/* 1. 宇宙や空：ゆっくり斜めに流れる */
+@keyframes flowSpace {
+    0% { background-position: 0 0; }
+    100% { background-position: 500px 500px; }
+}
+
+/* 2. 黄金：キラキラ輝くように縞模様が流れる */
+@keyframes shimmerGold {
+    0% { background-position: 0 0; }
+    100% { background-position: 100px 100px; }
+}
+
+/* 3. 桜：花びらが舞い落ちる（上から下へ） */
+@keyframes fallSakura {
+    0% { background-position: 0 0; }
+    100% { background-position: 100px 300px; }
+}
+
+/* =========================================
+   テーマごとの背景設定
+   ========================================= */
+
+/* --- 1. ダークモード（宇宙） --- */
+body.dark {
+    --bg-color: #0d1117;
+    --text-color: #c9d1d9;
+    --panel-bg: rgba(22, 27, 34, 0.8);
+    --border-color: #30363d;
+    --highlight-color: #58a6ff;
+}
+/* 左カラム：動く星空 */
+body.dark #left-column {
+    /* 宇宙の画像（フリー素材の星空パターン） */
+    background-image: url('https://www.transparenttextures.com/patterns/stardust.png');
+    background-color: #0b1021; 
+    /* アニメーション：60秒かけてゆっくり動く */
+    animation: flowSpace 60s linear infinite;
+}
+body.dark #right-column, body.dark .store-item { background-color: #161b22; }
+
+
+/* --- 2. 黄金モード（成金） --- */
 body.gold {
-    --bg-color: #fff8e1; --text-color: #5d4037; --panel-bg: rgba(255, 248, 220, 0.8);
-    --border-color: #daa520; --highlight-color: #daa520;
+    --bg-color: #fff8e1;
+    --text-color: #5d4037;
+    --panel-bg: rgba(255, 248, 220, 0.9);
+    --border-color: #daa520;
+    --highlight-color: #daa520;
 }
-body.gold #left-column { background-image: none; background-color: #fff8e1; }
-body.gold #right-column, body.gold .store-item { background-color: #faf0e6; }
-/* 桜 */
+/* 左カラム：動く金色の縞模様 */
+body.gold #left-column {
+    /* 縞模様をCSSで作る（画像不要） */
+    background: repeating-linear-gradient(
+        45deg,
+        #ffd700,
+        #ffd700 10px,
+        #ffecb3 10px,
+        #ffecb3 20px
+    );
+    /* アニメーション：輝くように動く */
+    animation: shimmerGold 5s linear infinite;
+}
+body.gold #right-column, body.gold .store-item { background-color: #fffaf0; }
+
+
+/* --- 3. 桜モード（和風） --- */
 body.sakura {
-    --bg-color: #ffe4e1; --text-color: #c71585; --panel-bg: rgba(255, 240, 245, 0.8);
-    --border-color: #ff69b4; --highlight-color: #ff69b4;
+    --bg-color: #ffe4e1;
+    --text-color: #c71585;
+    --panel-bg: rgba(255, 240, 245, 0.85);
+    --border-color: #ff69b4;
+    --highlight-color: #ff69b4;
 }
-body.sakura #left-column { background-image: none; background-color: #ffe4e1; }
+/* 左カラム：舞い落ちる花びら */
+body.sakura #left-column {
+    /* 花柄のパターン素材 */
+    background-image: url('https://www.transparenttextures.com/patterns/flower-trail.png');
+    background-color: #ffc0cb;
+    /* アニメーション：ゆっくり落ちる */
+    animation: fallSakura 20s linear infinite;
+}
 body.sakura #right-column, body.sakura .store-item { background-color: #fff0f5; }
-/* 基本（明るい） */
+
+
+/* --- 4. 基本モード（青空） --- */
 body.default {
-    --bg-color: #f0f8ff; --text-color: #333; --panel-bg: rgba(255, 255, 255, 0.8);
-    --border-color: #ccc; --highlight-color: #4CAF50;
+    --bg-color: #f0f8ff;
+    --text-color: #333;
+    --panel-bg: rgba(255, 255, 255, 0.8);
+    --border-color: #ccc;
+    --highlight-color: #4CAF50;
 }
-body.default #left-column { background-image: none; background-color: #f0f8ff; }
+/* 左カラム：流れる雲 */
+body.default #left-column {
+    /* 雲のテクスチャ */
+    background-image: url('https://www.transparenttextures.com/patterns/clouds.png');
+    background-color: #87ceeb; /* 空色 */
+    /* アニメーション：風に流れる */
+    animation: flowSpace 40s linear infinite;
+}
 body.default #right-column, body.default .store-item { background-color: #f9f9f9; }
-body.default .item-cost { color: #f44336; } /* デフォルトの赤 */
+body.default .item-cost { color: #d32f2f; }
