@@ -364,3 +364,28 @@ body.dark #left-column {
         opacity: 0; /* 透明になる */
     }
 }
+/* =========================================
+   ゴールデンクッキー
+   ========================================= */
+.golden-cookie {
+    position: absolute;
+    font-size: 60px; /* 大きさ */
+    cursor: pointer;
+    user-select: none;
+    z-index: 2000; /* 手前に表示 */
+    filter: drop-shadow(0 0 10px gold); /* 金色の光 */
+    animation: popIn 0.5s ease-out, shake 2s infinite; /* 登場と揺れる動き */
+}
+
+/* 登場アニメーション */
+@keyframes popIn {
+    from { transform: scale(0); }
+    to { transform: scale(1); }
+}
+
+/* プルプル揺れて気づかせるアニメーション */
+@keyframes shake {
+    0%, 100% { transform: rotate(0deg); }
+    25% { transform: rotate(-10deg); }
+    75% { transform: rotate(10deg); }
+}
