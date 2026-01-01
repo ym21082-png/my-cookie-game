@@ -24,6 +24,43 @@ function checkAchievements() {
         }
     });
 }
+function showAchievementNotification(ach) {
+    const notif = document.getElementById('achievement-notification');
+    document.getElementById('ach-title').innerText = "🏆 Achievement Unlocked!";
+    document.getElementById('ach-desc').innerText = ach.name;
+    
+    // 音を鳴らす（既存の音を流用、少し音程を変える）
+    const sound = baseSound.cloneNode();
+    sound.playbackRate = 0.5; 
+    sound.play().catch(() => {});
+
+    // 表示クラスをつけてスライドイン
+    notif.classList.add('show');
+
+    // 4秒後に隠す
+    setTimeout(() => {
+        notif.classList.remove('show');
+    }, 4000);
+}
+
+function updateAchievementDisplay() {
+    const container = document.getElementById('achievement-container');
+    if (!container) return;
+    container.innerHTML = "";
+    
+    achievements.forEach(ach => {
+        const div = document.createElement("div");
+        div.className = "achievement-list-item" + (ach.unlocked ? " unlocked" : "");
+        div.innerHTML = `
+            <div style="font-size:24px;">${ach.unlocked ? ach.icon : "❓"}</div>
+            <div>
+                <div style="font-weight:bold; font-size:12px;">${ach.unlocked ? ach.name : "???"}</div>
+                <div style="font-size:10px;">${ach.unlocked ? ach.desc : "Keep playing..."}</div>
+            </div>
+        `;
+        container.appendChild(div);
+    });
+}
 const translations = {
     ja: {
         score: "クッキー",
@@ -444,6 +481,7 @@ function saveGame() {
         prestigeLevel: prestigeLevel,
         items: items.map(i => ({ count: i.count, cost: i.cost, unlocked: i.unlocked })),
         skills: skills.map(s => ({ unlocked: s.unlocked })),
+        achievements: achievements.map(a => ({ id: a.id, unlocked: a.unlocked })),
         // ★天界データも保存
         heavenlyUpgrades: heavenlyUpgrades.map(h => ({ id: h.id, unlocked: h.unlocked })),
         difficultyMode: difficultyName === "Easy" ? 'easy' : difficultyName === "Hard" ? 'hard' : difficultyName === "V.Hard" ? 'veryhard' : 'normal',
@@ -472,6 +510,13 @@ function loadGame() {
         if (data.skills) {
             data.skills.forEach((saved, i) => { if (skills[i]) skills[i].unlocked = saved.unlocked; });
         }
+        if (data.achievements) {
+    data.achievements.forEach(saved => {
+        const ach = achievements.find(a => a.id === saved.id);
+        if (ach) ach.unlocked = saved.unlocked;
+    });
+}
+updateAchievementDisplay(); // 起動時にリストを表示
         // ★天界データのロード
         if (data.heavenlyUpgrades) {
             data.heavenlyUpgrades.forEach(saved => {
@@ -616,6 +661,7 @@ window.onload = function() {
     setInterval(() => {
         let gps = calculateGPS();
         addCookies(gps / 10);
+        checkAchievements();
     }, 100);
     setInterval(saveGame, 10000);
 };
