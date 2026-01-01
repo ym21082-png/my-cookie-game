@@ -116,7 +116,8 @@ const baseSound = new Audio('click.mp3');
 
 // --- ゲームロジック ---
 
-function clickCookie() {
+// 引数 (event) を受け取るように変更！
+function clickCookie(event) {
     const sound = baseSound.cloneNode();
     sound.playbackRate = 0.8 + (Math.random() * 0.4);
     sound.play().catch(() => {});
@@ -127,12 +128,37 @@ function clickCookie() {
     if (skills[1].unlocked) clickPower *= 2;
     if (skills[3].unlocked && Math.random() < 0.1) clickPower *= 10;
 
-    // ★天界ボーナス（チップ枚数 × ボーナス）
+    // ★天界ボーナス
     let prestigeMultiplier = 1 + (prestigeLevel * (isHeavenlyUnlocked("h1") ? 0.05 : 0.01));
     
-    addCookies(clickPower * prestigeMultiplier * difficulty);
-}
+    // ★ここが重要：計算結果を一度変数「amount」に入れる
+    let amount = clickPower * prestigeMultiplier * difficulty;
 
+    addCookies(amount);
+
+    // ★クリック演出：数字を浮かび上がらせる
+    if (event) {
+        // formatNumberを使って「+10」のように表示
+        createFloatingText(event.clientX, event.clientY, "+" + formatNumber(amount));
+    }
+}
+// 数字を画面に浮かび上がらせる専用の関数
+function createFloatingText(x, y, text) {
+    const el = document.createElement('div');
+    el.className = 'click-visual'; // CSSで動きを設定したクラス
+    el.innerText = text;
+    
+    // クリックした場所(x,y)に配置（少しランダムにずらす）
+    el.style.left = (x - 20 + Math.random() * 40) + 'px'; 
+    el.style.top = (y - 20) + 'px';
+    
+    document.body.appendChild(el);
+
+    // 1秒後に要素を消して掃除する
+    setTimeout(() => {
+        el.remove();
+    }, 1000);
+}
 function addCookies(amount) {
     cookies += amount;
     totalCookies += amount;
