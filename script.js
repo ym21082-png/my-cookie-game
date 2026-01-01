@@ -179,7 +179,7 @@ function calculateGPS() {
     // ★天界ボーナス
     let prestigeMultiplier = 1 + (prestigeLevel * (isHeavenlyUnlocked("h1") ? 0.05 : 0.01));
 
-    return totalGps * prestigeMultiplier * difficulty;
+    return totalGps * prestigeMultiplier * difficulty * buffMultiplier;
 }
 
 // ヘルパー：天界スキルを持ってるか確認
