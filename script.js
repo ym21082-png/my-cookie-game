@@ -247,19 +247,30 @@ function buyHeavenlyUpgrade(id) {
 
 // 5. 転生完了（ゲームに戻る）
 function finishAscension() {
-    // 建物をリセット
-    items.forEach(item => { item.count = 0; item.cost = getInitialCost(item.name); item.unlocked = item.trigger(); });
+    // ★ここが修正ポイント：最後にもう一度クッキーを強制的に0にする
+    cookies = 0;
+    totalCookies = 0;
+
+    // 建物をリセット（所持数を0に、価格を初期値に）
+    items.forEach(item => { 
+        item.count = 0; 
+        item.cost = getInitialCost(item.name); 
+        item.unlocked = item.trigger(); 
+    });
+    
+    // スキルをリセット
     skills.forEach(skill => skill.unlocked = false);
     
-    // スキルの再ロック解除
+    // スキルの再ロック解除チェック
     checkUnlocks();
 
     // 画面を戻す
     document.getElementById('ascension-screen').style.display = 'none';
     document.getElementById('game-container').style.display = 'flex';
     
+    // この状態で保存してリロード
     saveGame();
-    location.reload(); // リフレッシュして再開
+    location.reload(); // リフレッシュして新しい人生を開始
 }
 
 const initialCosts = items.map(i => i.cost);
