@@ -8,9 +8,8 @@
     <link rel="manifest" href="manifest.json">
 </head>
 <body>
-
     <div class="container">
-
+        
         <div class="mode-select">
             <p>現在のモード: <span id="current-mode-name" style="font-weight:bold;">ノーマル</span></p>
             <button onclick="setMode('easy')" class="mode-btn" id="mode-easy">イージー</button>
@@ -18,6 +17,7 @@
             <button onclick="setMode('hard')" class="mode-btn" id="mode-hard">ハード</button>
             <button onclick="setMode('veryhard')" class="mode-btn" id="mode-veryhard">ベリーハード</button>
         </div>
+
         <div class="theme-select" style="margin-bottom: 20px;">
             <p>テーマ設定:</p>
             <button onclick="changeTheme('default')" class="theme-btn theme-blue">基本</button>
@@ -25,42 +25,35 @@
             <button onclick="changeTheme('gold')" class="theme-btn theme-gold">黄金</button>
             <button onclick="changeTheme('sakura')" class="theme-btn theme-pink">桜</button>
         </div>
-        <h1>クッキー: <span id="score">0</span> 枚</h1>
-        <p>秒間: <span id="gps">0</span> 枚</p>
 
+        <h1>クッキー: <span id="score">0</span> 枚</h1>
+        <div class="cps-display">秒間: <span id="cps">0</span> 枚</div>
+        
         <div class="cookie-container">
-            <img src="cookie.png" id="big-cookie" onclick="clickCookie()" alt="🍪">
+            <img src="cookie.png" id="cookie" onclick="clickCookie()">
         </div>
 
         <hr>
 
-        <div class="section-title">🧪 研究所</div>
-        <div id="skill-container" class="scroll-container"></div>
+        <h2>🧪 研究所</h2>
+        <div id="lab-container"></div>
 
         <h2>🛒 ショップ</h2>
-    <h2>🛒 ショップ</h2>
-    <div id="shop-container"></div>
-        
-        <div class="prestige-section">
-            <p>天界チップ: <span id="prestige-level" style="font-weight:bold; color:#d2691e;">0</span> 枚</p>
-            <p><small>効果: 全生産力 +<span id="prestige-boost">0</span>%</small></p>
-            <button id="reincarnate-btn" onclick="reincarnate()" class="special-btn">👼 転生する</button>
-        </div>
+        <div id="shop-container"></div>
 
         <hr>
-        
-        <div class="settings">
-            <button id="reset-btn" onclick="resetGame()">🗑️ データを削除して最初から</button>
+
+        <div class="prestige-section">
+            <p>天界チップ: <span id="prestige-chips">0</span> 枚</p>
+            <p style="font-size: 12px;">効果: 全生産力 +<span id="prestige-effect">0</span>%</p>
+            <button onclick="prestige()" class="special-btn">👼 転生する</button>
         </div>
+
+        <br><br>
+        <button onclick="resetGame()" style="background: #ff5252; color: white;">🗑 データを削除して最初から</button>
 
     </div>
 
     <script src="script.js"></script>
-    <script>
-        if ('serviceWorker' in navigator) {
-            navigator.serviceWorker.register('sw.js')
-                .then(function() { console.log("Service Worker Registered"); });
-        }
-    </script>
 </body>
 </html>
