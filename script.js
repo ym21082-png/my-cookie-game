@@ -493,7 +493,74 @@ function startGame(lang) {
     // 黒い幕（オープニング）をフワッと消す
     document.getElementById('opening-overlay').classList.add('fade-out');
 }
+// --- ゴールデンクッキーシステム ---
 
+function spawnGoldenCookie() {
+    // 画面のランダムな位置（端っこすぎないように調整）
+    const x = Math.random() * (window.innerWidth - 100);
+    const y = Math.random() * (window.innerHeight - 100);
+
+    const golden = document.createElement("div");
+    golden.innerText = "🍪"; // 絵文字を使用（画像に変えてもOK）
+    golden.className = "golden-cookie";
+    golden.style.left = x + "px";
+    golden.style.top = y + "px";
+
+    // クリックしたときの処理
+    golden.onclick = (e) => {
+        clickGoldenCookie(e);
+        golden.remove(); // クリックしたら消す
+    };
+
+    document.body.appendChild(golden);
+
+    // 15秒間クリックしなかったら自然消滅
+    setTimeout(() => {
+        if (golden.parentNode) {
+            golden.remove();
+        }
+    }, 15000);
+
+    // 次の出現予約（再帰呼び出し）
+    scheduleNextGoldenCookie();
+}
+
+function scheduleNextGoldenCookie() {
+    // 基本：30秒〜90秒の間に1回出る
+    let minTime = 30000; 
+    let maxTime = 90000;
+
+    // ★天界スキル「Angelic Luck (h5)」を持っていたら出現頻度が2倍（時間は半分）
+    if (isHeavenlyUnlocked("h5")) {
+        minTime /= 2;
+        maxTime /= 2;
+    }
+
+    const randomTime = minTime + Math.random() * (maxTime - minTime);
+    setTimeout(spawnGoldenCookie, randomTime);
+}
+
+function clickGoldenCookie(event) {
+    // ボーナス：現在の秒間生産量(GPS) × 900秒分（15分分）
+    // もしGPSが0なら、最低でも777クッキーあげる
+    let gps = calculateGPS();
+    let bonus = Math.max(777, gps * 900);
+
+    // ★天界スキル「Angelic Luck (h5)」でさらに2倍にするならここに追加してもOK
+    
+    addCookies(bonus);
+
+    // 演出：「Lucky!」と「+ボーナス額」を出す
+    createFloatingText(event.clientX, event.clientY, "Lucky!");
+    setTimeout(() => {
+        createFloatingText(event.clientX, event.clientY - 30, "+" + formatNumber(bonus));
+    }, 200);
+
+    // 音を鳴らす（クリック音を流用）
+    const sound = baseSound.cloneNode();
+    sound.playbackRate = 1.5; // 少し高い音にする
+    sound.play().catch(() => {});
+}
 window.onload = function() {
     loadGame();
     checkUnlocks();
