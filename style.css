@@ -389,3 +389,47 @@ body.dark #left-column {
     25% { transform: rotate(-10deg); }
     75% { transform: rotate(10deg); }
 }
+/* =========================================
+   実績通知（トースト）
+   ========================================= */
+#achievement-notification {
+    position: fixed;
+    bottom: 20px;
+    right: -300px; /* 最初は画面の外に隠しておく */
+    background: #333;
+    border: 2px solid gold;
+    color: #fff;
+    padding: 15px;
+    width: 250px;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    box-shadow: 0 0 10px rgba(0,0,0,0.5);
+    z-index: 9999;
+    transition: right 0.5s ease; /* スライドのアニメーション */
+}
+
+#achievement-notification.show {
+    right: 20px; /* 出てくるときの位置 */
+}
+
+.ach-icon { font-size: 30px; }
+.ach-title { font-weight: bold; color: gold; font-size: 14px; }
+.ach-desc { font-size: 12px; color: #ccc; }
+
+/* 獲得済みトロフィーリストのデザイン */
+.achievement-list-item {
+    background: rgba(0,0,0,0.2);
+    padding: 5px;
+    margin: 5px 0;
+    border-radius: 5px;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    opacity: 0.5; /* 未獲得は薄く */
+}
+.achievement-list-item.unlocked {
+    opacity: 1;
+    background: rgba(255, 215, 0, 0.1);
+    border: 1px solid gold;
+}
