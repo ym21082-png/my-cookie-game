@@ -210,8 +210,8 @@ body.dark #left-column {
     /* 宇宙の画像（フリー素材の星空パターン） */
     background-image: url('https://www.transparenttextures.com/patterns/stardust.png');
     background-color: #0b1021; 
-    /* アニメーション：60秒かけてゆっくり動く */
-    animation: flowSpace 30s linear infinite;
+    /* アニメーション：10秒かけてゆっくり動く */
+    animation: flowSpace 10s linear infinite;
 }
 body.dark #right-column, body.dark .store-item { background-color: #161b22; }
 
