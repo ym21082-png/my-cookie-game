@@ -759,3 +759,55 @@ function formatTime(seconds) {
     if (hours > 0) return `${hours}h ${minutes}m`;
     return `${minutes}m ${seconds}s`;
 }
+// ==========================================
+//  ニュースティッカー機能
+// ==========================================
+
+// ニュースのネタ帳
+const newsData = [
+    // 条件なし（いつでも出る）
+    { text: "Cookie Clicker game found to be highly addictive!", condition: () => true },
+    { text: "Local bakery shortage reported due to mysterious cookie production.", condition: () => true },
+    
+    // クッキーの枚数によるニュース
+    { text: "Your cookies are becoming popular in the neighborhood.", condition: () => totalCookies > 1000 },
+    { text: "Cookie universe expanding rapidly!", condition: () => totalCookies > 1000000 },
+    
+    // 建物によるニュース（おばあちゃん）
+    { text: "Grandmas demand higher wages and better rolling pins.", condition: () => items[1].count > 0 },
+    { text: "Strange rituals observed at local retirement home.", condition: () => items[1].count > 50 },
+    
+    // 建物によるニュース（農場）
+    { text: "Scientists discover genetically modified chocolate chips.", condition: () => items[2].count > 0 },
+    
+    // カーソル
+    { text: "Your fingers must be tired by now.", condition: () => totalClicks > 1000 },
+    
+    // 天界・転生
+    { text: "People say they feel like they've lived this life before...", condition: () => prestigeLevel > 0 }
+];
+
+function updateNews() {
+    const content = document.getElementById('news-content');
+    if (!content) return;
+
+    // 今の状況で表示できるニュースだけを抽出
+    const availableNews = newsData.filter(n => n.condition());
+    
+    // その中からランダムに1つ選ぶ
+    const randomNews = availableNews[Math.floor(Math.random() * availableNews.length)];
+    
+    // フェードアウトさせてから切り替える演出
+    content.style.opacity = 0;
+    
+    setTimeout(() => {
+        content.innerText = randomNews.text;
+        content.style.opacity = 1;
+    }, 500); // 0.5秒かけて消えて、切り替わって、また出る
+}
+
+// 10秒ごとにニュースを切り替える
+setInterval(updateNews, 10000);
+
+// ゲーム開始時に一回すぐ実行
+setTimeout(updateNews, 1000);
