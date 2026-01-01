@@ -339,3 +339,28 @@ body.dark #left-column {
     from { opacity: 0; transform: translateY(20px); }
     to { opacity: 1; transform: translateY(0); }
 }
+/* =========================================
+   クリック時の数字演出
+   ========================================= */
+.click-visual {
+    position: absolute;
+    font-size: 24px;
+    font-weight: bold;
+    color: #fff; /* 白文字 */
+    text-shadow: 0 0 5px #000; /* 黒い縁取り（どの背景でも見えるように） */
+    pointer-events: none; /* これが大事！数字をクリックの邪魔にしない */
+    z-index: 1000; /* 手前に表示 */
+    animation: floatUp 1s ease-out forwards;
+}
+
+/* 上に昇りながら消えるアニメーション */
+@keyframes floatUp {
+    0% {
+        transform: translateY(0) scale(1);
+        opacity: 1;
+    }
+    100% {
+        transform: translateY(-50px) scale(1.5); /* 上に50px移動しつつ大きくなる */
+        opacity: 0; /* 透明になる */
+    }
+}
