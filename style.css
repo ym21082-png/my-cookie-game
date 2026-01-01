@@ -273,3 +273,10 @@ details[open] summary:after { transform: rotate(180deg); }
 
 body.dark .item-owned { color: rgba(255, 255, 255, 0.6) !important; font-weight: bold; font-size: 1.2em; }
 body.dark .store-item.affordable .item-owned { color: rgba(144, 238, 144, 0.8) !important; }
+/* =========================================
+   ダークモード時の星空設定（一番下に追加）
+   ========================================= */
+body.dark #left-column {
+    background-image: url('https://www.transparenttextures.com/patterns/stardust.png');
+    animation: flowSpace 120s linear infinite; /* 星をゆっくり動かす */
+}
