@@ -3,54 +3,76 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>クッキークリッカー</title>
-   <link rel="stylesheet" href="style.css">
+    <title>クッキークリッカー改</title>
+    <link rel="stylesheet" href="style.css">
     <link rel="manifest" href="manifest.json">
+    <link href="https://fonts.googleapis.com/css2?family=Merriweather:wght@400;700&display=swap" rel="stylesheet">
 </head>
-<body>
-    <div class="container">
-        
-        <div class="mode-select">
-            <p>現在のモード: <span id="current-mode-name" style="font-weight:bold;">ノーマル</span></p>
-            <button onclick="setMode('easy')" class="mode-btn" id="mode-easy">イージー</button>
-            <button onclick="setMode('normal')" class="mode-btn active" id="mode-normal">ノーマル</button>
-            <button onclick="setMode('hard')" class="mode-btn" id="mode-hard">ハード</button>
-            <button onclick="setMode('veryhard')" class="mode-btn" id="mode-veryhard">ベリーハード</button>
+<body class="default">
+
+    <div id="game-container">
+
+        <div id="left-column">
+            <div class="header-info">
+                <div id="cookies-count"><span id="score">0</span> cookies</div>
+                <div id="cps-display">per second: <span id="cps">0</span></div>
+            </div>
+
+            <div class="cookie-section">
+                <div class="cookie-shine"></div>
+                <img src="cookie.png" id="big-cookie" onclick="clickCookie()">
+            </div>
+
+            <hr class="separator">
+
+            <div class="section-header">🧪 Upgrades</div>
+            <div id="lab-container" class="scroll-box"></div>
+
+            <hr class="separator">
+            
+            <div class="settings-area">
+                <details>
+                    <summary>⚙️ Settings & Legacy</summary>
+                    <div class="settings-content">
+                        <div class="setting-group">
+                            <p>Difficulty:</p>
+                            <div class="mode-select">
+                                <button onclick="setMode('easy')" class="mode-btn" id="mode-easy">Easy</button>
+                                <button onclick="setMode('normal')" class="mode-btn active" id="mode-normal">Normal</button>
+                                <button onclick="setMode('hard')" class="mode-btn" id="mode-hard">Hard</button>
+                                <button onclick="setMode('veryhard')" class="mode-btn" id="mode-veryhard">V.Hard</button>
+                            </div>
+                            <p class="small-text">Current: <span id="current-mode-name">Normal</span></p>
+                        </div>
+                        
+                        <div class="setting-group">
+                            <p>Theme:</p>
+                            <div class="theme-select">
+                                <button onclick="changeTheme('default')" class="theme-btn theme-blue">Basic</button>
+                                <button onclick="changeTheme('dark')" class="theme-btn theme-black">Dark</button>
+                                <button onclick="changeTheme('gold')" class="theme-btn theme-gold">Gold</button>
+                                <button onclick="changeTheme('sakura')" class="theme-btn theme-pink">Sakura</button>
+                            </div>
+                        </div>
+
+                        <div class="prestige-section">
+                            <p>Heavenly Chips: <span id="prestige-chips">0</span></p>
+                            <p class="small-text">(Bonus: +<span id="prestige-effect">0</span>%)</p>
+                            <button onclick="prestige()" class="special-btn full-width">👼 Ascend</button>
+                        </div>
+
+                        <button onclick="resetGame()" class="reset-btn full-width">🗑 Wipe Save</button>
+                    </div>
+                </details>
+            </div>
         </div>
 
-        <div class="theme-select" style="margin-bottom: 20px;">
-            <p>テーマ設定:</p>
-            <button onclick="changeTheme('default')" class="theme-btn theme-blue">基本</button>
-            <button onclick="changeTheme('dark')" class="theme-btn theme-black">ダーク</button>
-            <button onclick="changeTheme('gold')" class="theme-btn theme-gold">黄金</button>
-            <button onclick="changeTheme('sakura')" class="theme-btn theme-pink">桜</button>
+        <div id="right-column">
+            <div class="store-header">
+                <h2>🛒 Store</h2>
+            </div>
+            <div id="shop-container" class="scroll-box shop-list"></div>
         </div>
-
-        <h1>クッキー: <span id="score">0</span> 枚</h1>
-        <div class="cps-display">秒間: <span id="cps">0</span> 枚</div>
-        
-        <div class="cookie-container">
-            <img src="cookie.png" id="cookie" onclick="clickCookie()">
-        </div>
-
-        <hr>
-
-        <h2>🧪 研究所</h2>
-        <div id="lab-container"></div>
-
-        <h2>🛒 ショップ</h2>
-        <div id="shop-container"></div>
-
-        <hr>
-
-        <div class="prestige-section">
-            <p>天界チップ: <span id="prestige-chips">0</span> 枚</p>
-            <p style="font-size: 12px;">効果: 全生産力 +<span id="prestige-effect">0</span>%</p>
-            <button onclick="prestige()" class="special-btn">👼 転生する</button>
-        </div>
-
-        <br><br>
-        <button onclick="resetGame()" style="background: #ff5252; color: white;">🗑 データを削除して最初から</button>
 
     </div>
 
