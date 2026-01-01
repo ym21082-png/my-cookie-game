@@ -133,7 +133,7 @@ function clickCookie(event) {
     let prestigeMultiplier = 1 + (prestigeLevel * (isHeavenlyUnlocked("h1") ? 0.05 : 0.01));
     
     // ★ここが重要：計算結果を一度変数「amount」に入れる
-    let amount = clickPower * prestigeMultiplier * difficulty;
+    let amount = clickPower * prestigeMultiplier * difficulty * buffMultiplier;
 
     addCookies(amount);
 
