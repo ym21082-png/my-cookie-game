@@ -429,6 +429,44 @@ body.dark #left-column {
     opacity: 0.5; /* 未獲得は薄く */
 }
 .achievement-list-item.unlocked {
+   /* ニュースティッカーの枠 */
+#news-ticker-container {
+    width: 100%;
+    background: #000;
+    color: #fff;
+    padding: 10px;
+    box-sizing: border-box;
+    border-bottom: 2px solid #555;
+    display: flex; /* 横並びにする */
+    align-items: center;
+    font-family: monospace; /* ニュースっぽいフォント */
+    height: 40px;
+    overflow: hidden;
+    position: relative;
+    z-index: 100;
+}
+
+/* 「News:」というラベル */
+.news-label {
+    font-weight: bold;
+    color: #ffcc00; /* 黄色で目立たせる */
+    margin-right: 15px;
+    z-index: 2;
+    background: #000; /* 文字が流れてきても隠れないように背景黒 */
+    padding-right: 10px;
+}
+
+/* ニュースの文字 */
+#news-content {
+    white-space: nowrap; /* 折り返さない */
+    font-size: 14px;
+    animation: fadeIn 1s; /* ふわっと表示 */
+}
+
+@keyframes fadeIn {
+    from { opacity: 0; transform: translateY(10px); }
+    to { opacity: 1; transform: translateY(0); }
+}
     opacity: 1;
     background: rgba(255, 215, 0, 0.1);
     border: 1px solid gold;
