@@ -1,6 +1,52 @@
 // ==========================================
 //  クッキークリッカー改 天界機能付き (v8.0)
 // ==========================================
+// ==========================================
+//  翻訳データ (日本語 / 英語)
+// ==========================================
+let currentLang = 'en'; // 初期値
+
+const translations = {
+    ja: {
+        score: "クッキー",
+        perSecond: "毎秒:",
+        storeTitle: "ショップ",
+        labTitle: "研究所",
+        // アイテム名
+        "Cursor": "カーソル",
+        "Grandma": "おばあちゃん",
+        "Farm": "農場",
+        "Mine": "鉱山",
+        "Factory": "工場",
+        "Bank": "銀行",
+        "Temple": "寺院",
+        "Wizard Tower": "魔法の塔",
+        "Shipment": "ロケット便",
+        "Alchemy Lab": "錬金術ラボ",
+        "Portal": "ポータル",
+        // スキル名（一部例）
+        "Reinforced Index": "強化人差し指",
+        "Carpal Tunnel": "手根管症候群",
+        "Forwards from grandma": "おばあちゃんの支援",
+        "Lucky Cookie": "ラッキークッキー"
+    },
+    en: {
+        score: "Cookies",
+        perSecond: "per second:",
+        storeTitle: "Store",
+        labTitle: "Laboratory",
+        // 英語はそのまま返すので空でも良いが、念のため
+        "Cursor": "Cursor",
+        "Grandma": "Grandma"
+        // ...他はキーと同じなら省略可能
+    }
+};
+
+// 翻訳ヘルパー関数
+function t(key) {
+    if (currentLang === 'en') return key; // 英語ならそのまま
+    return translations.ja[key] || key;   // 日本語辞書になければそのまま
+}
 
 let cookies = 0;
 let totalCookies = 0; // 今回の人生の累計
@@ -402,6 +448,24 @@ function resetGame() {
         localStorage.clear();
         location.reload();
     }
+}
+function startGame(lang) {
+    currentLang = lang; // 選んだ言語（'en' か 'ja'）を保存
+
+    // 画面の固定テキストを翻訳（IDがある場所のみ）
+    if (document.getElementById('cookie-label')) {
+        document.getElementById('cookie-label').innerText = t("score");
+    }
+    if (document.getElementById('store-title')) {
+        document.getElementById('store-title').innerText = t("storeTitle");
+    }
+
+    // ボタンの中身を翻訳後の言語で作り直す
+    createShopButtons();
+    createSkillButtons();
+    
+    // 黒い幕（オープニング）をフワッと消す
+    document.getElementById('opening-overlay').classList.add('fade-out');
 }
 
 window.onload = function() {
