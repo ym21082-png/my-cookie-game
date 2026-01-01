@@ -5,7 +5,25 @@
 //  翻訳データ (日本語 / 英語)
 // ==========================================
 let currentLang = 'en'; // 初期値
+// --- 実績（トロフィー）データ ---
+const achievements = [
+    { id: "a1", name: "Humble Beginnings", desc: "Bake 100 cookies.", icon: "🍪", unlocked: false, trigger: () => totalCookies >= 100 },
+    { id: "a2", name: "Fingertastic", desc: "Click 1,000 times.", icon: "👆", unlocked: false, trigger: () => totalClicks >= 1000 },
+    { id: "a3", name: "Grandma's Love", desc: "Own 10 Grandmas.", icon: "👵", unlocked: false, trigger: () => items[1].count >= 10 },
+    { id: "a4", name: "Millionaire", desc: "Bake 1,000,000 cookies.", icon: "💰", unlocked: false, trigger: () => totalCookies >= 1000000 },
+    { id: "a5", name: "Ascension", desc: "Prestige for the first time.", icon: "👼", unlocked: false, trigger: () => prestigeLevel > 0 }
+];
 
+// 実績チェック関数
+function checkAchievements() {
+    achievements.forEach(ach => {
+        if (!ach.unlocked && ach.trigger()) {
+            ach.unlocked = true;
+            showAchievementNotification(ach); // 通知を出す
+            updateAchievementDisplay(); // リスト表示を更新
+        }
+    });
+}
 const translations = {
     ja: {
         score: "クッキー",
