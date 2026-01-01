@@ -1,279 +1,355 @@
-/* --- 全体設定 --- */
-:root {
-    --bg-color: #222; /* デフォルトは暗め */
-    --text-color: #eee;
-    --panel-bg: rgba(0, 0, 0, 0.6);
-    --border-color: #444;
-    --highlight-color: #66cdaa; /* 価格が足りる時の色 */
-    --unavailable-color: #f44336; /* 価格が足りない時の色 */
-    --font-main: 'Merriweather', serif;
+// --- 設定データ ---
+let cookies = 0;
+let totalCookies = 0; // 累計（転生用兼、統計用）
+let prestigeLevel = 0;
+let difficulty = 1.0;
+let difficultyName = "normal";
+let currentTheme = "default";
+
+// ★追加：統計用変数
+let totalClicks = 0;       // 累計クリック回数
+let startTime = Date.now(); // ゲーム開始日時
+
+// ヘルパー関数：大きな数字を短縮表示
+function formatNumber(num) {
+    if (num < 1000000) return Math.floor(num).toLocaleString();
+    const definitions = [
+        { val: 1e6, suffix: ' million' }, { val: 1e9, suffix: ' billion' },
+        { val: 1e12, suffix: ' trillion' }, { val: 1e15, suffix: ' quadrillion' },
+        { val: 1e18, suffix: ' quintillion' }, { val: 1e21, suffix: ' sextillion' }
+    ];
+    for (let i = definitions.length - 1; i >= 0; i--) {
+        if (num >= definitions[i].val) {
+            return (num / definitions[i].val).toFixed(3) + definitions[i].suffix;
+        }
+    }
+    return num.toExponential(3);
 }
 
-body {
-    margin: 0;
-    padding: 0;
-    font-family: var(--font-main);
-    background-color: var(--bg-color);
-    color: var(--text-color);
-    height: 100vh;
-    overflow: hidden; /* スクロールは各パネル内で行う */
-    transition: background-color 0.5s, color 0.5s;
+// ヘルパー関数：秒数を「HH:MM:SS」形式に変換
+function formatTime(ms) {
+    let seconds = Math.floor(ms / 1000);
+    let h = Math.floor(seconds / 3600);
+    let m = Math.floor((seconds % 3600) / 60);
+    let s = seconds % 60;
+    return `${h.toString().padStart(2, '0')}:${m.toString().padStart(2, '0')}:${s.toString().padStart(2, '0')}`;
 }
 
-/* 左右2カラムレイアウト */
-#game-container {
-    display: flex;
-    height: 100%;
+// アイテムリスト
+let items = [
+    { name: "Cursor", cost: 15, gps: 0.1, count: 0, unlocked: true, trigger: () => true, iconStr: "👆" },
+    { name: "Grandma", cost: 100, gps: 1, count: 0, unlocked: false, trigger: () => items[0].count >= 1, iconStr: "👵" },
+    { name: "Farm", cost: 1100, gps: 8, count: 0, unlocked: false, trigger: () => items[1].count >= 1, iconStr: "🌾" },
+    { name: "Mine", cost: 12000, gps: 47, count: 0, unlocked: false, trigger: () => items[2].count >= 1, iconStr: "⛏️" },
+    { name: "Factory", cost: 130000, gps: 260, count: 0, unlocked: false, trigger: () => items[3].count >= 1, iconStr: "🏭" },
+    { name: "Bank", cost: 1400000, gps: 1400, count: 0, unlocked: false, trigger: () => items[4].count >= 1, iconStr: "🏦" },
+    { name: "Temple", cost: 20000000, gps: 7800, count: 0, unlocked: false, trigger: () => items[5].count >= 1, iconStr: "🏛️" },
+    { name: "Wizard Tower", cost: 330000000, gps: 44000, count: 0, unlocked: false, trigger: () => items[6].count >= 1, iconStr: "🧙‍♂️" },
+    { name: "Shipment", cost: 5100000000, gps: 260000, count: 0, unlocked: false, trigger: () => items[7].count >= 1, iconStr: "🚀" },
+    { name: "Alchemy Lab", cost: 75000000000, gps: 1600000, count: 0, unlocked: false, trigger: () => items[8].count >= 1, iconStr: "⚗️" },
+    { name: "Portal", cost: 1000000000000, gps: 10000000, count: 0, unlocked: false, trigger: () => items[9].count >= 1, iconStr: "🌀" },
+    { name: "Time Machine", cost: 14000000000000, gps: 65000000, count: 0, unlocked: false, trigger: () => items[10].count >= 1, iconStr: "⏳" },
+    { name: "Antimatter", cost: 170000000000000, gps: 430000000, count: 0, unlocked: false, trigger: () => items[11].count >= 1, iconStr: "⚛️" },
+    { name: "Prism", cost: 2100000000000000, gps: 2900000000, count: 0, unlocked: false, trigger: () => items[12].count >= 1, iconStr: "🌈" },
+    { name: "Chancemaker", cost: 26000000000000000, gps: 21000000000, count: 0, unlocked: false, trigger: () => items[13].count >= 1, iconStr: "🎲" },
+    { name: "Fractal Engine", cost: 310000000000000000, gps: 150000000000, count: 0, unlocked: false, trigger: () => items[14].count >= 1, iconStr: "💠" },
+    { name: "Java Console", cost: 71000000000000000000, gps: 1100000000000, count: 0, unlocked: false, trigger: () => items[15].count >= 1, iconStr: "💻" },
+    { name: "Idleverse", cost: 12000000000000000000000, gps: 8300000000000, count: 0, unlocked: false, trigger: () => items[16].count >= 1, iconStr: "🌌" },
+    { name: "Cortex Baker", cost: 1900000000000000000000000, gps: 64000000000000, count: 0, unlocked: false, trigger: () => items[17].count >= 1, iconStr: "🧠" },
+    { name: "You", cost: 540000000000000000000000000, gps: 510000000000000, count: 0, unlocked: false, trigger: () => items[18].count >= 1, iconStr: "🫵" }
+];
+
+// 研究所リスト
+let skills = [
+    { name: "Reinforced Index", cost: 100, desc: "Clicking is 2x as efficient.", unlocked: false, trigger: () => items[0].count >= 1, iconStr: "👆" },
+    { name: "Carpal Tunnel", cost: 500, desc: "Clicking is 2x as efficient.", unlocked: false, trigger: () => items[0].count >= 10, iconStr: "👆" },
+    { name: "Ambidextrous", cost: 10000, desc: "Clicking is 2x as efficient.", unlocked: false, trigger: () => items[0].count >= 50, iconStr: "👆" },
+    { name: "Forwards from grandma", cost: 1000, desc: "Grandmas are 2x as efficient.", unlocked: false, trigger: () => items[1].count >= 1, iconStr: "👵" },
+    { name: "Steel-plated rolling pins", cost: 5000, desc: "Grandmas are 2x as efficient.", unlocked: false, trigger: () => items[1].count >= 10, iconStr: "👵" },
+    { name: "Lubricated dentures", cost: 50000, desc: "Grandmas are 2x as efficient.", unlocked: false, trigger: () => items[1].count >= 50, iconStr: "👵" },
+    { name: "Lucky Cookie", cost: 77777, desc: "Clicks have a 10% chance to be x10.", unlocked: false, trigger: () => totalCookies >= 7777, iconStr: "🍀" },
+    { name: "Heavenly chip secret", cost: 1000000, desc: "CpS +5% per Heavenly Chip (instead of 10%).", unlocked: false, trigger: () => prestigeLevel >= 1, iconStr: "👼" }
+];
+
+const baseSound = new Audio('click.mp3');
+
+// --- メイン機能 ---
+
+function clickCookie() {
+    const sound = baseSound.cloneNode();
+    sound.playbackRate = 0.8 + (Math.random() * 0.4);
+    sound.play().catch(() => {});
+
+    // ★追加：クリック統計を加算
+    totalClicks++;
+
+    let clickPower = 1;
+    if (skills[0].unlocked) clickPower *= 2;
+    if (skills[1].unlocked) clickPower *= 2;
+    if (skills[2].unlocked) clickPower *= 2;
+    if (skills[6].unlocked && Math.random() < 0.1) clickPower *= 10;
+
+    let prestigeMultiplier = 1 + (prestigeLevel * 0.1);
+    if (skills[7].unlocked) prestigeMultiplier = 1 + (prestigeLevel * 0.05);
+
+    addCookies(clickPower * prestigeMultiplier * difficulty);
 }
 
-#left-column {
-    flex: 1; /* 左側は少し狭く */
-    min-width: 300px;
-    padding: 20px;
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    border-right: 4px double var(--border-color);
-    background: url('https://cdn.pixabay.com/photo/2017/08/30/01/05/milky-way-2695569_960_720.jpg') no-repeat center center;
-    background-size: cover;
-    position: relative;
-}
-/* 背景を暗くするためのオーバーレイ */
-#left-column::before {
-    content: "";
-    position: absolute; top:0; left:0; right:0; bottom:0;
-    background: var(--panel-bg); z-index: -1;
+function addCookies(amount) {
+    cookies += amount;
+    totalCookies += amount;
+    updateDisplay();
+    checkUnlocks();
 }
 
-#right-column {
-    flex: 1.2; /* 右側（ストア）を少し広く */
-    min-width: 350px;
-    background-color: #1a1a1a; /* ストアの背景は少し濃く */
-    display: flex;
-    flex-direction: column;
-    border-left: 4px double #333;
+function calculateGPS() {
+    let totalGps = 0;
+    items.forEach(item => {
+        let production = item.gps * item.count;
+        if (item.name === "Grandma") {
+            if (skills[3].unlocked) production *= 2;
+            if (skills[4].unlocked) production *= 2;
+            if (skills[5].unlocked) production *= 2;
+        }
+        if (item.name === "Cursor" && item.count > 0) {
+             let nonCursorBuildings = 0;
+             items.forEach(i => { if(i.name !== "Cursor") nonCursorBuildings += i.count; });
+             production += Math.floor(nonCursorBuildings / 10) * item.count;
+        }
+        totalGps += production;
+    });
+
+    let prestigeMultiplier = 1 + (prestigeLevel * 0.1);
+    if (skills[7].unlocked) prestigeMultiplier = 1 + (prestigeLevel * 0.05);
+
+    return totalGps * prestigeMultiplier * difficulty;
 }
 
-/* --- 左カラムの要素 --- */
-.header-info {
-    text-align: center;
-    margin-bottom: 30px;
-    text-shadow: 0 2px 4px rgba(0,0,0,0.8);
-}
-#cookies-count { font-size: 2.5em; font-weight: bold; }
-#cps-display { font-size: 1.2em; opacity: 0.8; }
+function updateDisplay() {
+    document.getElementById('score').innerText = formatNumber(cookies);
+    document.getElementById('cps').innerText = formatNumber(calculateGPS());
+    
+    document.getElementById('prestige-chips').innerText = formatNumber(prestigeLevel);
+    document.getElementById('prestige-effect').innerText = formatNumber(Math.floor(prestigeLevel * (skills[7].unlocked ? 5 : 10)));
+    document.title = formatNumber(cookies) + " cookies";
 
-.cookie-section {
-    position: relative;
-    width: 250px; height: 250px;
-    display: flex; justify-content: center; align-items: center;
-    margin-bottom: 30px;
-}
-#big-cookie {
-    width: 100%; height: 100%;
-    cursor: pointer;
-    transition: transform 0.05s;
-    z-index: 2;
-}
-#big-cookie:active { transform: scale(0.95); }
-/* クッキーの後ろの光輪（簡易版） */
-.cookie-shine {
-    position: absolute;
-    width: 300px; height: 300px;
-    background: radial-gradient(circle, rgba(255,255,200,0.4) 0%, rgba(0,0,0,0) 70%);
-    animation: rotateShine 20s linear infinite;
-    z-index: 1;
-}
-@keyframes rotateShine { from { transform: rotate(0deg); } to { transform: rotate(360deg); } }
+    // ★追加：統計情報の更新
+    const statClicks = document.getElementById('stat-clicks');
+    const statTotal = document.getElementById('stat-total');
+    const statTime = document.getElementById('stat-time');
+    const statBuildings = document.getElementById('stat-buildings');
 
-.separator {
-    width: 80%; border: 0; border-top: 2px solid var(--border-color); margin: 15px 0; opacity: 0.5;
-}
-.section-header {
-    font-size: 1.2em; font-weight: bold; margin-bottom: 10px; text-align: center; width: 100%;
-}
+    if (statClicks) {
+        statClicks.innerText = totalClicks.toLocaleString();
+        statTotal.innerText = formatNumber(totalCookies);
+        
+        // 施設合計数の計算
+        let totalBuildings = items.reduce((sum, item) => sum + item.count, 0);
+        statBuildings.innerText = totalBuildings.toLocaleString();
 
-/* 研究所（アップグレード）のアイコン表示 */
-#lab-container {
-    display: flex; flex-wrap: wrap; justify-content: center; gap: 5px; width: 100%;
-}
-.skill-icon {
-    width: 50px; height: 50px;
-    background-color: #333; border: 2px solid #555; border-radius: 5px;
-    cursor: pointer; position: relative; overflow: hidden;
-}
-.skill-icon:hover { border-color: #fff; }
-.skill-icon.affordable { border-color: var(--highlight-color); }
-.skill-icon.purchased { opacity: 0.3; pointer-events: none; }
-/* ツールチップ（簡易版） */
-.skill-icon .tooltip {
-    visibility: hidden; position: absolute; bottom: 100%; left: 50%; transform: translateX(-50%);
-    background: rgba(0,0,0,0.9); color: #fff; padding: 10px; border-radius: 5px;
-    width: 200px; z-index: 10; font-size: 0.9em; border: 1px solid #666;
-}
-.skill-icon:hover .tooltip { visibility: visible; }
+        // 経過時間の計算
+        let elapsed = Date.now() - startTime;
+        statTime.innerText = formatTime(elapsed);
+    }
 
-/* 設定エリア（折りたたみ） */
-.settings-area {
-    width: 90%; margin-top: auto; /* 一番下に配置 */
-    background: rgba(0,0,0,0.5); border-radius: 10px; padding: 10px; border: 1px solid #444;
-}
-summary { cursor: pointer; font-weight: bold; outline: none; }
-.settings-content { padding-top: 10px; }
-.setting-group { margin-bottom: 15px; text-align: center; }
-.mode-btn, .theme-btn {
-    padding: 5px 10px; margin: 2px; border: 1px solid #555; background: #333; color: #ccc; cursor: pointer; border-radius: 4px;
-}
-.mode-btn.active { background: var(--highlight-color); color: #000; font-weight: bold; }
-.full-width { width: 100%; margin-top: 10px; padding: 8px; border-radius: 5px; border: none; font-weight: bold; cursor: pointer; }
-.special-btn { background: linear-gradient(45deg, #daa520, #ffd700); color: #000; }
-.reset-btn { background: #d32f2f; color: #fff; }
-.small-text { font-size: 0.8em; opacity: 0.7; }
-
-/* --- 右カラム（ストア）の要素 --- */
-.store-header {
-    padding: 15px; text-align: center; background: #2a2a2a; border-bottom: 2px solid #444;
-}
-#shop-container { font-family: sans-serif; } /* ストアは読みやすいフォントで */
-
-/* ストアのアイテムリスト（本家風） */
-.store-item {
-    display: flex; align-items: center;
-    padding: 10px;
-    border-bottom: 1px solid #333;
-    background: #222;
-    cursor: pointer; transition: background 0.2s;
-    position: relative; overflow: hidden;
-    height: 64px; /* 本家っぽい高さ */
-}
-.store-item:hover { background: #2c2c2c; }
-.store-item.affordable:hover { background: #333; }
-.store-item.locked { display: none; } /* アンロック前は非表示 */
-
-/* アイコン部分（仮の四角） */
-.item-icon-placeholder {
-    width: 64px; height: 64px; background: #444; margin-right: 15px; border-radius: 4px; flex-shrink: 0;
-    background-size: cover; background-position: center;
-    /* ここに将来的に各アイテムの画像URLを指定する */
-}
-/* 情報部分（名前と価格） */
-.item-info { flex-grow: 1; }
-.item-name { font-weight: bold; font-size: 1.2em; }
-.item-cost { font-size: 0.9em; color: var(--unavailable-color); font-weight: bold; }
-.store-item.affordable .item-cost { color: var(--highlight-color); }
-/* 所持数部分（右端の大きな数字） */
-.item-owned { font-size: 2.5em; font-weight: bold; opacity: 0.3; margin-left: 15px; }
-
-/* スクロールバーの装飾 */
-.scroll-box { overflow-y: auto; flex-grow: 1; }
-::-webkit-scrollbar { width: 10px; }
-::-webkit-scrollbar-track { background: #1a1a1a; }
-::-webkit-scrollbar-thumb { background: #444; border-radius: 5px; }
-::-webkit-scrollbar-thumb:hover { background: #555; }
-
-/* =========================================
-   アニメーション定義 (背景を動かす魔法)
-   ========================================= */
-
-/* 1. 宇宙や空：ゆっくり斜めに流れる */
-@keyframes flowSpace {
-    0% { background-position: 0 0; }
-    100% { background-position: 500px 500px; }
+    // ストアのボタン更新（変更なし）
+    items.forEach((item, i) => {
+        if (!item.unlocked) return;
+        const btn = document.getElementById("shop-btn-" + i);
+        if (btn) {
+            btn.querySelector('.item-cost').innerText = formatNumber(item.cost);
+            btn.querySelector('.item-owned').innerText = item.count;
+            if (cookies >= item.cost) btn.classList.add('affordable');
+            else btn.classList.remove('affordable');
+        }
+    });
 }
 
-/* 2. 黄金：キラキラ輝くように縞模様が流れる */
-@keyframes shimmerGold {
-    0% { background-position: 0 0; }
-    100% { background-position: 100px 100px; }
+// --- アンロック確認システム ---
+function checkUnlocks() {
+    let changed = false;
+    items.forEach(item => {
+        if (!item.unlocked && item.trigger()) {
+            item.unlocked = true;
+            changed = true;
+        }
+    });
+    if (changed) {
+        createShopButtons();
+        createSkillButtons();
+    }
 }
 
-/* 3. 桜：花びらが舞い落ちる（上から下へ） */
-@keyframes fallSakura {
-    0% { background-position: 0 0; }
-    100% { background-position: 100px 300px; }
+// --- ゲームシステム ---
+function setMode(mode) {
+    document.querySelectorAll('.mode-btn').forEach(btn => btn.classList.remove('active'));
+    if (mode === 'easy') { difficulty = 2.0; difficultyName = "Easy"; document.getElementById('mode-easy').classList.add('active'); }
+    else if (mode === 'normal') { difficulty = 1.0; difficultyName = "Normal"; document.getElementById('mode-normal').classList.add('active'); }
+    else if (mode === 'hard') { difficulty = 0.5; difficultyName = "Hard"; document.getElementById('mode-hard').classList.add('active'); }
+    else if (mode === 'veryhard') { difficulty = 0.2; difficultyName = "V.Hard"; document.getElementById('mode-veryhard').classList.add('active'); }
+    document.getElementById('current-mode-name').innerText = difficultyName;
+}
+function changeTheme(themeName) {
+    currentTheme = themeName;
+    document.body.className = ""; 
+    document.body.classList.add(themeName);
+}
+function prestige() {
+    if (totalCookies < 1000000) { alert("You need 1 million total cookies to ascend!"); return; }
+    if (confirm("Are you sure you want to ascend?")) {
+        let earnedChips = Math.floor(totalCookies / 1000000);
+        prestigeLevel += earnedChips;
+        
+        // 転生時にリセットする変数
+        cookies = 0;
+        totalCookies = 0;
+        items.forEach(item => { item.count = 0; item.cost = getInitialCost(item.name); item.unlocked = item.trigger(); });
+        skills.forEach(skill => skill.unlocked = false);
+        
+        // ★注意：統計（クリック数やプレイ時間）はリセットしないのが一般的ですが、
+        // もしリセットしたければここで totalClicks = 0; startTime = Date.now(); を入れてください
+        
+        saveGame();
+        location.reload();
+    }
+}
+const initialCosts = items.map(i => i.cost);
+function getInitialCost(name) {
+    let idx = items.findIndex(i => i.name === name);
+    return idx !== -1 ? initialCosts[idx] : 99999999;
 }
 
-/* =========================================
-   テーマごとの背景設定
-   ========================================= */
+// --- ボタン生成機能 ---
+function createShopButtons() {
+    const container = document.getElementById('shop-container');
+    if (!container) return;
+    container.innerHTML = "";
+    items.forEach((item, index) => {
+        if (!item.unlocked) return;
+        const btn = document.createElement("div");
+        btn.className = "store-item";
+        btn.id = "shop-btn-" + index;
+        btn.innerHTML = `
+            <div class="item-icon-placeholder" style="display:flex;justify-content:center;align-items:center;font-size:30px;">${item.iconStr}</div>
+            <div class="item-info">
+                <div class="item-name">${item.name}</div>
+                <div class="item-cost">${formatNumber(item.cost)}</div>
+            </div>
+            <div class="item-owned">${item.count}</div>
+        `;
+        btn.onclick = () => {
+            if (cookies >= item.cost) {
+                cookies -= item.cost;
+                item.count++;
+                item.cost = Math.ceil(item.cost * 1.15);
+                updateDisplay();
+                checkUnlocks();
+            }
+        };
+        container.appendChild(btn);
+    });
+}
 
-/* --- 1. ダークモード（宇宙） --- */
-body.dark {
-    --bg-color: #0d1117;
-    --text-color: #c9d1d9;
-    --panel-bg: rgba(22, 27, 34, 0.8);
-    --border-color: #30363d;
-    --highlight-color: #58a6ff;
+function createSkillButtons() {
+    const container = document.getElementById('lab-container');
+    if (!container) return;
+    container.innerHTML = "";
+    skills.forEach((skill, index) => {
+        if (!skill.unlocked && skill.trigger()) {
+            const btn = document.createElement("div");
+            btn.className = "skill-icon";
+            btn.innerHTML = `<div style="font-size:30px;text-align:center;line-height:46px;">${skill.iconStr}</div>`;
+            const tooltip = document.createElement("div");
+            tooltip.className = "tooltip";
+            tooltip.innerHTML = `
+                <div style="font-weight:bold;margin-bottom:5px;">${skill.name}</div>
+                <div style="font-size:0.9em;margin-bottom:5px;">${skill.desc}</div>
+                <div style="color:${cookies >= skill.cost ? '#66cdaa' : '#f44336'};font-weight:bold;">Price: ${formatNumber(skill.cost)}</div>
+            `;
+            btn.appendChild(tooltip);
+            if (cookies >= skill.cost) btn.classList.add('affordable');
+            btn.onclick = () => {
+                if (cookies >= skill.cost) {
+                    cookies -= skill.cost;
+                    skill.unlocked = true;
+                    updateDisplay();
+                    createSkillButtons();
+                }
+            };
+            container.appendChild(btn);
+        }
+    });
 }
-/* 左カラム：動く星空 */
-body.dark #left-column {
-    /* 宇宙の画像（フリー素材の星空パターン） */
-    background-image: url('https://www.transparenttextures.com/patterns/stardust.png');
-    background-color: #0b1021; 
-    /* アニメーション：10秒かけてゆっくり動く */
-    animation: flowSpace 10s linear infinite;
-}
-body.dark #right-column, body.dark .store-item { background-color: #161b22; }
 
+// --- セーブ＆ロード＆リセット ---
+function saveGame() {
+    const saveData = {
+        cookies: cookies,
+        totalCookies: totalCookies,
+        prestigeLevel: prestigeLevel,
+        items: items.map(i => ({ count: i.count, cost: i.cost, unlocked: i.unlocked })),
+        skills: skills.map(s => ({ unlocked: s.unlocked })),
+        difficultyMode: difficultyName === "Easy" ? 'easy' : difficultyName === "Hard" ? 'hard' : difficultyName === "V.Hard" ? 'veryhard' : 'normal',
+        theme: currentTheme,
+        
+        // ★追加：統計データの保存
+        totalClicks: totalClicks,
+        startTime: startTime
+    };
+    localStorage.setItem("myClickerSaveV7", JSON.stringify(saveData));
+}
 
-/* --- 2. 黄金モード（成金） --- */
-body.gold {
-    --bg-color: #fff8e1;
-    --text-color: #5d4037;
-    --panel-bg: rgba(255, 248, 220, 0.9);
-    --border-color: #daa520;
-    --highlight-color: #daa520;
-}
-/* 左カラム：動く金色の縞模様 */
-body.gold #left-column {
-    /* 縞模様をCSSで作る（画像不要） */
-    background: repeating-linear-gradient(
-        45deg,
-        #ffd700,
-        #ffd700 10px,
-        #ffecb3 10px,
-        #ffecb3 20px
-    );
-    /* アニメーション：輝くように動く */
-    animation: shimmerGold 5s linear infinite;
-}
-body.gold #right-column, body.gold .store-item { background-color: #fffaf0; }
+function loadGame() {
+    const data = JSON.parse(localStorage.getItem("myClickerSaveV7"));
+    if (data) {
+        cookies = data.cookies || 0;
+        totalCookies = data.totalCookies || data.cookies;
+        prestigeLevel = data.prestigeLevel || 0;
+        
+        // ★追加：統計データの読み込み（古いデータにはないので初期値を入れる）
+        totalClicks = data.totalClicks || 0;
+        startTime = data.startTime || Date.now();
 
+        if (data.items) {
+            data.items.forEach((saved, i) => {
+                if (items[i]) { items[i].count = saved.count; items[i].cost = saved.cost; items[i].unlocked = saved.unlocked; }
+            });
+        }
+        if (data.skills) {
+            data.skills.forEach((saved, i) => {
+                if (skills[i]) skills[i].unlocked = saved.unlocked;
+            });
+        }
+        setMode(data.difficultyMode || 'normal');
+        changeTheme(data.theme || 'default');
+    } else {
+        setMode('normal');
+        changeTheme('default');
+        items[0].unlocked = true; 
+    }
+}
 
-/* --- 3. 桜モード（和風） --- */
-body.sakura {
-    --bg-color: #ffe4e1;
-    --text-color: #c71585;
-    --panel-bg: rgba(255, 240, 245, 0.85);
-    --border-color: #ff69b4;
-    --highlight-color: #ff69b4;
+function resetGame() {
+    if (confirm("WARNING: Do you want to WIPE your entire save file?")) {
+        let id = window.setInterval(function() {}, 0); while (id--) window.clearInterval(id);
+        localStorage.clear();
+        localStorage.setItem("myClickerSaveV7", null);
+        alert("Save file wiped.");
+        location.reload();
+    }
 }
-/* 左カラム：舞い落ちる花びら */
-body.sakura #left-column {
-    /* 花柄のパターン素材 */
-    background-image: url('https://www.transparenttextures.com/patterns/flower-trail.png');
-    background-color: #ffc0cb;
-    /* アニメーション：ゆっくり落ちる */
-    animation: fallSakura 20s linear infinite;
-}
-body.sakura #right-column, body.sakura .store-item { background-color: #fff0f5; }
 
+// --- エンジン始動 ---
+window.onload = function() {
+    loadGame();
+    checkUnlocks();
+    createSkillButtons(); // ロード直後にスキルボタンも生成
+    createShopButtons();
+    updateDisplay();
 
-/* --- 4. 基本モード（青空） --- */
-body.default {
-    --bg-color: #f0f8ff;
-    --text-color: #333;
-    --panel-bg: rgba(255, 255, 255, 0.8);
-    --border-color: #ccc;
-    --highlight-color: #4CAF50;
-}
-/* 左カラム：流れる雲 */
-body.default #left-column {
-    /* 雲のテクスチャ */
-    background-image: url('https://www.transparenttextures.com/patterns/clouds.png');
-    background-color: #87ceeb; /* 空色 */
-    /* アニメーション：風に流れる */
-    animation: flowSpace 40s linear infinite;
-}
-body.default #right-column, body.default .store-item { background-color: #f9f9f9; }
-body.default .item-cost { color: #d32f2f; }
+    setInterval(() => {
+        let gps = calculateGPS();
+        addCookies(gps / 10);
+    }, 100);
+    setInterval(saveGame, 10000);
+};
