@@ -1,230 +1,197 @@
+/* --- 全体設定 --- */
+:root {
+    --bg-color: #222; /* デフォルトは暗め */
+    --text-color: #eee;
+    --panel-bg: rgba(0, 0, 0, 0.6);
+    --border-color: #444;
+    --highlight-color: #66cdaa; /* 価格が足りる時の色 */
+    --unavailable-color: #f44336; /* 価格が足りない時の色 */
+    --font-main: 'Merriweather', serif;
+}
+
 body {
-    font-family: sans-serif;
-    text-align: center;
-    background-color: #f4f1ea;
-    color: #333;
-    touch-action: manipulation; /* スマホでの拡大防止 */
+    margin: 0;
+    padding: 0;
+    font-family: var(--font-main);
+    background-color: var(--bg-color);
+    color: var(--text-color);
+    height: 100vh;
+    overflow: hidden; /* スクロールは各パネル内で行う */
+    transition: background-color 0.5s, color 0.5s;
 }
-button {
-    cursor: pointer;
-    font-size: 1.2rem;
-    padding: 10px 20px;
-    border-radius: 8px;
-    border: none;
-    background-color: #d2691e;
-    color: white;
-    margin: 10px;
-}
-button:active {
-    transform: scale(0.95); /* 押した時に凹む演出 */
-}
-button:disabled {
-    background-color: #ccc;
-    cursor: not-allowed;
-}
-.shop {
-    margin-top: 20px;
-    background: white;
-    padding: 20px;
-    border-radius: 10px;
-    display: inline-block;
-}
-/* --- ここから下を追加 --- */
 
-.skill-container {
+/* 左右2カラムレイアウト */
+#game-container {
     display: flex;
-    flex-wrap: wrap;
-    justify-content: center;
-    gap: 10px;
-    margin-top: 20px;
-    background-color: #e6e6fa; /* 薄紫色の背景 */
-    padding: 15px;
-    border-radius: 10px;
+    height: 100%;
 }
 
-.skill-btn {
-    background-color: #6a5acd; /* スレートブルー */
-    width: 140px;
-    height: 140px;
-    font-size: 0.9rem;
+#left-column {
+    flex: 1; /* 左側は少し狭く */
+    min-width: 300px;
+    padding: 20px;
     display: flex;
     flex-direction: column;
     align-items: center;
-    justify-content: center;
-    border: 2px solid #483d8b;
+    border-right: 4px double var(--border-color);
+    background: url('https://cdn.pixabay.com/photo/2017/08/30/01/05/milky-way-2695569_960_720.jpg') no-repeat center center;
+    background-size: cover;
+    position: relative;
+}
+/* 背景を暗くするためのオーバーレイ */
+#left-column::before {
+    content: "";
+    position: absolute; top:0; left:0; right:0; bottom:0;
+    background: var(--panel-bg); z-index: -1;
 }
 
-.skill-btn:disabled {
-    background-color: #a9a9a9;
-    border-color: #696969;
+#right-column {
+    flex: 1.2; /* 右側（ストア）を少し広く */
+    min-width: 350px;
+    background-color: #1a1a1a; /* ストアの背景は少し濃く */
+    display: flex;
+    flex-direction: column;
+    border-left: 4px double #333;
 }
 
-.skill-btn.purchased {
-    background-color: #32cd32; /* 買ったやつは緑色 */
-    cursor: default;
-    opacity: 0.8;
+/* --- 左カラムの要素 --- */
+.header-info {
+    text-align: center;
+    margin-bottom: 30px;
+    text-shadow: 0 2px 4px rgba(0,0,0,0.8);
 }
+#cookies-count { font-size: 2.5em; font-weight: bold; }
+#cps-display { font-size: 1.2em; opacity: 0.8; }
 
-h2 {
-    margin-top: 30px;
-    color: #555;
+.cookie-section {
+    position: relative;
+    width: 250px; height: 250px;
+    display: flex; justify-content: center; align-items: center;
+    margin-bottom: 30px;
 }
-/* --- データ削除ボタンのデザイン --- */
-.settings {
-    margin-top: 50px;
-    margin-bottom: 20px;
-}
-
-#reset-btn {
-    background-color: #ff4444; /* 危険な赤色 */
-    font-size: 0.8rem;         /* 文字は小さめ */
-    padding: 8px 15px;
-}
-
-#reset-btn:hover {
-    background-color: #cc0000;
-}
-/* --- 巨大クッキーのデザイン --- */
-
-.cookie-container {
-    margin: 30px 0;
-    text-align: center; /* 真ん中に置く */
-}
-
 #big-cookie {
-    width: 250px;       /* 大きさ */
-    cursor: pointer;    /* マウスを乗せると指マークに */
-    transition: transform 0.1s; /* 動くスピード */
-    
-    /* 影をつけて浮いているように見せる */
-    filter: drop-shadow(0 5px 10px rgba(0,0,0,0.3));
-}
-
-#big-cookie:hover {
-    transform: scale(1.05); /* マウスを乗せると少し大きくなる */
-}
-
-#big-cookie:active {
-    transform: scale(0.95); /* クリックすると少し縮む（押した感） */
-}
-/* --- 転生エリアのデザイン --- */
-.prestige-section {
-    background-color: #fff8e1;
-    padding: 15px;
-    border-radius: 10px;
-    border: 2px solid #ffd700; /* 金色の枠 */
-    margin: 20px 0;
-}
-
-.special-btn {
-    background: linear-gradient(45deg, #ffd700, #ffb347);
-    color: white;
-    font-weight: bold;
-    border: none;
-    padding: 10px 20px;
-    border-radius: 20px;
+    width: 100%; height: 100%;
     cursor: pointer;
-    box-shadow: 0 4px 6px rgba(0,0,0,0.2);
+    transition: transform 0.05s;
+    z-index: 2;
+}
+#big-cookie:active { transform: scale(0.95); }
+/* クッキーの後ろの光輪（簡易版） */
+.cookie-shine {
+    position: absolute;
+    width: 300px; height: 300px;
+    background: radial-gradient(circle, rgba(255,255,200,0.4) 0%, rgba(0,0,0,0) 70%);
+    animation: rotateShine 20s linear infinite;
+    z-index: 1;
+}
+@keyframes rotateShine { from { transform: rotate(0deg); } to { transform: rotate(360deg); } }
+
+.separator {
+    width: 80%; border: 0; border-top: 2px solid var(--border-color); margin: 15px 0; opacity: 0.5;
+}
+.section-header {
+    font-size: 1.2em; font-weight: bold; margin-bottom: 10px; text-align: center; width: 100%;
 }
 
-.special-btn:hover {
-    transform: scale(1.05);
+/* 研究所（アップグレード）のアイコン表示 */
+#lab-container {
+    display: flex; flex-wrap: wrap; justify-content: center; gap: 5px; width: 100%;
 }
-/* --- 難易度選択エリア --- */
-.mode-select {
-    margin-bottom: 20px;
+.skill-icon {
+    width: 50px; height: 50px;
+    background-color: #333; border: 2px solid #555; border-radius: 5px;
+    cursor: pointer; position: relative; overflow: hidden;
 }
+.skill-icon:hover { border-color: #fff; }
+.skill-icon.affordable { border-color: var(--highlight-color); }
+.skill-icon.purchased { opacity: 0.3; pointer-events: none; }
+/* ツールチップ（簡易版） */
+.skill-icon .tooltip {
+    visibility: hidden; position: absolute; bottom: 100%; left: 50%; transform: translateX(-50%);
+    background: rgba(0,0,0,0.9); color: #fff; padding: 10px; border-radius: 5px;
+    width: 200px; z-index: 10; font-size: 0.9em; border: 1px solid #666;
+}
+.skill-icon:hover .tooltip { visibility: visible; }
 
-.mode-btn {
-    background-color: #ddd;
-    border: none;
-    padding: 5px 10px;
-    margin: 0 2px;
-    cursor: pointer;
-    border-radius: 5px;
-    font-size: 12px;
+/* 設定エリア（折りたたみ） */
+.settings-area {
+    width: 90%; margin-top: auto; /* 一番下に配置 */
+    background: rgba(0,0,0,0.5); border-radius: 10px; padding: 10px; border: 1px solid #444;
 }
-
-/* 選ばれているボタンのデザイン */
-.mode-btn.active {
-    background-color: #d2691e;
-    color: white;
-    font-weight: bold;
-    border: 2px solid #8b4513;
+summary { cursor: pointer; font-weight: bold; outline: none; }
+.settings-content { padding-top: 10px; }
+.setting-group { margin-bottom: 15px; text-align: center; }
+.mode-btn, .theme-btn {
+    padding: 5px 10px; margin: 2px; border: 1px solid #555; background: #333; color: #ccc; cursor: pointer; border-radius: 4px;
 }
-/* --- テーマ着せ替え機能 (CSS変数) --- */
+.mode-btn.active { background: var(--highlight-color); color: #000; font-weight: bold; }
+.full-width { width: 100%; margin-top: 10px; padding: 8px; border-radius: 5px; border: none; font-weight: bold; cursor: pointer; }
+.special-btn { background: linear-gradient(45deg, #daa520, #ffd700); color: #000; }
+.reset-btn { background: #d32f2f; color: #fff; }
+.small-text { font-size: 0.8em; opacity: 0.7; }
 
-/* 1. デフォルトの色（基本） */
-:root {
-    --bg-color: #f0f8ff;       /* 背景：薄い青 */
-    --text-color: #333;        /* 文字：黒 */
-    --container-bg: rgba(255, 255, 255, 0.9); /* 白い板 */
-    --btn-bg: #4CAF50;         /* ボタン：緑 */
-    --btn-text: white;         /* ボタン文字：白 */
-    --special-btn-bg: linear-gradient(45deg, #ffd700, #ffb347); /* 転生ボタン */
+/* --- 右カラム（ストア）の要素 --- */
+.store-header {
+    padding: 15px; text-align: center; background: #2a2a2a; border-bottom: 2px solid #444;
 }
+#shop-container { font-family: sans-serif; } /* ストアは読みやすいフォントで */
 
-/* 2. ダークモード（夜） */
-body.dark {
-    --bg-color: #1a1a1a;
-    --text-color: #e0e0e0;
-    --container-bg: rgba(50, 50, 50, 0.95);
-    --btn-bg: #555;
-    --btn-text: #fff;
-    --special-btn-bg: linear-gradient(45deg, #444, #222);
+/* ストアのアイテムリスト（本家風） */
+.store-item {
+    display: flex; align-items: center;
+    padding: 10px;
+    border-bottom: 1px solid #333;
+    background: #222;
+    cursor: pointer; transition: background 0.2s;
+    position: relative; overflow: hidden;
+    height: 64px; /* 本家っぽい高さ */
 }
+.store-item:hover { background: #2c2c2c; }
+.store-item.affordable:hover { background: #333; }
+.store-item.locked { display: none; } /* アンロック前は非表示 */
 
-/* 3. 黄金モード（ゴージャス） */
+/* アイコン部分（仮の四角） */
+.item-icon-placeholder {
+    width: 64px; height: 64px; background: #444; margin-right: 15px; border-radius: 4px; flex-shrink: 0;
+    background-size: cover; background-position: center;
+    /* ここに将来的に各アイテムの画像URLを指定する */
+}
+/* 情報部分（名前と価格） */
+.item-info { flex-grow: 1; }
+.item-name { font-weight: bold; font-size: 1.2em; }
+.item-cost { font-size: 0.9em; color: var(--unavailable-color); font-weight: bold; }
+.store-item.affordable .item-cost { color: var(--highlight-color); }
+/* 所持数部分（右端の大きな数字） */
+.item-owned { font-size: 2.5em; font-weight: bold; opacity: 0.3; margin-left: 15px; }
+
+/* スクロールバーの装飾 */
+.scroll-box { overflow-y: auto; flex-grow: 1; }
+::-webkit-scrollbar { width: 10px; }
+::-webkit-scrollbar-track { background: #1a1a1a; }
+::-webkit-scrollbar-thumb { background: #444; border-radius: 5px; }
+::-webkit-scrollbar-thumb:hover { background: #555; }
+
+/* --- テーマ着せ替え (CSS変数の上書き) --- */
+/* ダーク（デフォルトと同じなので省略） */
+/* 黄金 */
 body.gold {
-    --bg-color: #fff8e1;
-    --text-color: #5d4037;
-    --container-bg: rgba(255, 248, 220, 0.9);
-    --btn-bg: #d2691e;
-    --btn-text: #fff;
-    --special-btn-bg: linear-gradient(45deg, #ffd700, #daa520);
+    --bg-color: #fff8e1; --text-color: #5d4037; --panel-bg: rgba(255, 248, 220, 0.8);
+    --border-color: #daa520; --highlight-color: #daa520;
 }
-
-/* 4. 桜モード（かわいい） */
+body.gold #left-column { background-image: none; background-color: #fff8e1; }
+body.gold #right-column, body.gold .store-item { background-color: #faf0e6; }
+/* 桜 */
 body.sakura {
-    --bg-color: #ffe4e1;
-    --text-color: #c71585;
-    --container-bg: rgba(255, 240, 245, 0.9);
-    --btn-bg: #ff69b4;
-    --btn-text: #fff;
-    --special-btn-bg: linear-gradient(45deg, #ffb7c5, #ff69b4);
+    --bg-color: #ffe4e1; --text-color: #c71585; --panel-bg: rgba(255, 240, 245, 0.8);
+    --border-color: #ff69b4; --highlight-color: #ff69b4;
 }
-
-/* --- 変数を適用する設定 --- */
-
-/* 全体の背景と文字色を変数に置き換え */
-body {
-    background-color: var(--bg-color);
-    color: var(--text-color);
-    transition: background-color 0.5s, color 0.5s; /* じわっと変わるアニメーション */
+body.sakura #left-column { background-image: none; background-color: #ffe4e1; }
+body.sakura #right-column, body.sakura .store-item { background-color: #fff0f5; }
+/* 基本（明るい） */
+body.default {
+    --bg-color: #f0f8ff; --text-color: #333; --panel-bg: rgba(255, 255, 255, 0.8);
+    --border-color: #ccc; --highlight-color: #4CAF50;
 }
-
-/* メインの白い枠を変数に置き換え */
-.container {
-    background-color: var(--container-bg);
-    transition: background-color 0.5s;
-}
-
-/* すべてのボタンを変数に対応させる */
-button {
-    background: var(--btn-bg);
-    color: var(--btn-text);
-    border: 1px solid rgba(0,0,0,0.1);
-    transition: all 0.3s;
-}
-
-/* 転生ボタンなどの特別ボタン */
-.special-btn {
-    background: var(--special-btn-bg) !important;
-}
-
-/* テーマ選択ボタン自体の色 */
-.theme-btn { padding: 5px 10px; margin: 2px; cursor: pointer; border-radius: 5px; }
-.theme-blue { background: #f0f8ff; color: #333; border: 1px solid #ccc; }
-.theme-black { background: #333; color: #fff; }
-.theme-gold { background: #ffd700; color: #5d4037; }
-.theme-pink { background: #ffb7c5; color: #c71585; }
+body.default #left-column { background-image: none; background-color: #f0f8ff; }
+body.default #right-column, body.default .store-item { background-color: #f9f9f9; }
+body.default .item-cost { color: #f44336; } /* デフォルトの赤 */
