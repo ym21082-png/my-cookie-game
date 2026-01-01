@@ -211,7 +211,7 @@ body.dark #left-column {
     background-image: url('https://www.transparenttextures.com/patterns/stardust.png');
     background-color: #0b1021; 
     /* アニメーション：60秒かけてゆっくり動く */
-    animation: flowSpace 60s linear infinite;
+    animation: flowSpace 30s linear infinite;
 }
 body.dark #right-column, body.dark .store-item { background-color: #161b22; }
 
