@@ -52,6 +52,7 @@ let cookies = 0;
 let totalCookies = 0; // 今回の人生の累計
 let prestigeLevel = 0; // 所持している天界チップ（通貨）
 let lifetimeCookies = 0; // 全人生の累計（統計用）
+let buffMultiplier = 1; // バフ倍率（通常は1、確変中は7になる）
 
 // ★天界アップグレードのデータ
 // id: 識別子, name: 名前, cost: 価格, desc: 説明, icon: 絵文字
