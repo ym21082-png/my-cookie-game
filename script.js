@@ -685,6 +685,10 @@ window.onload = function() {
     }, 100);
     setInterval(saveGame, 10000);
 };
+// ウィンドウやタブを閉じるときに強制セーブ
+window.onbeforeunload = function() {
+    saveGame();
+};
 // 秒数を「1h 20m 30s」のような読みやすい形式にする関数
 function formatTime(seconds) {
     if (seconds < 60) return Math.floor(seconds) + "s";
