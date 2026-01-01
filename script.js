@@ -408,36 +408,77 @@ function getInitialCost(name) {
     return idx !== -1 ? initialCosts[idx] : 99999999;
 }
 
-// --- ボタン生成 ---
+// --- 購入処理（新しく追加！） ---
+function buyItem(id) {
+    const item = items[id];
+    let currentCost = item.cost;
+    
+    // 天界スキルでの割引計算
+    if (isHeavenlyUnlocked("h3")) {
+        currentCost = Math.floor(currentCost * 0.95);
+    }
+
+    // お金が足りているかチェック
+    if (cookies >= currentCost) {
+        // 1. お金を払う
+        cookies -= currentCost;
+        
+        // 2. アイテムを増やす
+        item.count++;
+
+        // 3. 次の価格を計算（基本価格 × 1.15の個数乗）
+        // ※こうすることで、毎回正しい価格が再計算されます
+        item.cost = Math.ceil(item.baseCost * Math.pow(1.15, item.count));
+
+        // 4. 画面更新
+        updateDisplay();
+        createShopButtons(); // ボタンの表示価格も更新
+        checkUnlocks();      // 解禁要素チェック
+        
+        // 音を鳴らす
+        const sound = baseSound.cloneNode();
+        sound.playbackRate = 1.0 + (id * 0.1); 
+        sound.play().catch(() => {});
+    }
+}
+
+// --- ボタン生成（修正版） ---
 function createShopButtons() {
     const container = document.getElementById('shop-container');
     if (!container) return;
+    
+    // ※毎回クリアせずに、中身の数字だけ更新する方が軽量ですが、
+    // 今回はバグ修正優先で再描画します
     container.innerHTML = "";
+    
     items.forEach((item, index) => {
         if (!item.unlocked) return;
-        let cost = item.cost;
-        if (isHeavenlyUnlocked("h3")) cost = Math.floor(cost * 0.95);
+        
+        // 表示用の価格計算
+        let displayCost = item.cost;
+        if (isHeavenlyUnlocked("h3")) displayCost = Math.floor(displayCost * 0.95);
 
         const btn = document.createElement("div");
         btn.className = "store-item";
         btn.id = "shop-btn-" + index;
+        
+        // お金が足りるかチェックしてクラス付与
+        if (cookies >= displayCost) btn.classList.add('affordable');
+        
         btn.innerHTML = `
             <div class="item-icon-placeholder" style="display:flex;justify-content:center;align-items:center;font-size:30px;">${item.iconStr}</div>
             <div class="item-info">
                 <div class="item-name">${item.name}</div>
-                <div class="item-cost">${formatNumber(cost)}</div>
+                <div class="item-cost">${formatNumber(displayCost)}</div>
             </div>
             <div class="item-owned">${item.count}</div>
         `;
+
+        // クリックしたら buyItem関数 を呼ぶように変更！
         btn.onclick = () => {
-            if (cookies >= cost) {
-                cookies -= cost;
-                item.count++;
-                item.cost = Math.ceil(item.cost * 1.15);
-                updateDisplay();
-                checkUnlocks();
-            }
+            buyItem(index);
         };
+        
         container.appendChild(btn);
     });
 }
