@@ -350,3 +350,81 @@ function changeTheme(themeName) {
     // 転生ボタンなどの色も強制的に再描画してCSS変数を適用させる
     updateDisplay(); 
 }
+// ==============================================
+// ★ここから下を script.js の一番下に貼り付けてください
+// （ここが消えていたので、ゲームが動いていませんでした！）
+// ==============================================
+
+// ショップのボタンを作る機能
+function createShopButtons() {
+    const shopContainer = document.getElementById('shop-container');
+    if (!shopContainer) return; // エラー防止
+
+    shopContainer.innerHTML = ""; // 一度空にする（重複防止）
+
+    items.forEach((item, index) => {
+        // ボタンを作成
+        const btn = document.createElement("button");
+        btn.className = "item-btn"; // デザイン用クラス
+        btn.id = "btn-" + index;    // あとで色を変えるためにIDをつける
+        
+        // ボタンの中身（HTML）
+        btn.innerHTML = `
+            <div class="item-name">${item.name}</div>
+            <div class="item-cost">価格: ${item.cost.toLocaleString()}</div>
+            <div class="item-count">所持: ${item.count}</div>
+        `;
+
+        // クリックしたら購入する処理
+        btn.onclick = function() {
+            if (cookies >= item.cost) {
+                cookies -= item.cost;
+                item.count++;
+                item.cost = Math.ceil(item.cost * 1.15); // 価格上昇
+                updateDisplay(); // 画面更新
+                createShopButtons(); // ボタンの価格表記を更新するために作り直す
+            }
+        };
+
+        shopContainer.appendChild(btn);
+    });
+}
+
+// ゲームの起動処理（ページが開かれたら実行される）
+window.onload = function() {
+    // 1. セーブデータを読み込む
+    loadGame();
+    
+    // 2. ショップのボタンを作る
+    createShopButtons();
+    
+    // 3. 画面の数字を最新にする
+    updateDisplay();
+
+    // 4. ゲームのループ開始（0.1秒ごとにクッキーを増やす）
+    setInterval(function() {
+        // GPS（秒間生産量）を計算して追加
+        let gps = calculateGPS();
+        cookies += gps / 10;
+        totalCookies += gps / 10;
+
+        // 画面更新
+        updateDisplay();
+        
+        // タブのタイトルに枚数を表示
+        document.title = Math.floor(cookies) + " クッキー";
+        
+        // 買えるボタンの色を変える（簡易版）
+        items.forEach((item, index) => {
+            const btn = document.getElementById("btn-" + index);
+            if(btn) {
+                if(cookies >= item.cost) btn.style.opacity = "1.0";
+                else btn.style.opacity = "0.6";
+            }
+        });
+
+    }, 100); // 0.1秒ごと
+
+    // 5. オートセーブ（10秒ごと）
+    setInterval(saveGame, 10000);
+};
