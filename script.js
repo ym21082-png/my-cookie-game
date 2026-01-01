@@ -1,34 +1,45 @@
 // ==========================================
-//  クッキークリッカー改 完全版 (v6.0)
+//  クッキークリッカー改 統計機能付き (v7.1)
 // ==========================================
 
 // --- 設定データ ---
 let cookies = 0;
-let totalCookies = 0;
+let totalCookies = 0; // 累計（転生用兼、統計用）
 let prestigeLevel = 0;
 let difficulty = 1.0;
 let difficultyName = "normal";
 let currentTheme = "default";
 
-// ヘルパー関数：大きな数字を短縮表示 (例: 1,234,567 -> 1.234 million)
+// ★統計用変数
+let totalClicks = 0;       // 累計クリック回数
+let startTime = Date.now(); // ゲーム開始日時
+
+// ヘルパー関数：大きな数字を短縮表示
 function formatNumber(num) {
     if (num < 1000000) return Math.floor(num).toLocaleString();
     const definitions = [
         { val: 1e6, suffix: ' million' }, { val: 1e9, suffix: ' billion' },
         { val: 1e12, suffix: ' trillion' }, { val: 1e15, suffix: ' quadrillion' },
         { val: 1e18, suffix: ' quintillion' }, { val: 1e21, suffix: ' sextillion' }
-        // 必要に応じて追加...
     ];
     for (let i = definitions.length - 1; i >= 0; i--) {
         if (num >= definitions[i].val) {
             return (num / definitions[i].val).toFixed(3) + definitions[i].suffix;
         }
     }
-    return num.toExponential(3); // それ以上は指数表記
+    return num.toExponential(3);
 }
 
-// アイテムリスト（20個＋アンロック条件）
-// trigger: アンロックされる条件（trueを返すと表示される）
+// ヘルパー関数：秒数を「HH:MM:SS」形式に変換
+function formatTime(ms) {
+    let seconds = Math.floor(ms / 1000);
+    let h = Math.floor(seconds / 3600);
+    let m = Math.floor((seconds % 3600) / 60);
+    let s = seconds % 60;
+    return `${h.toString().padStart(2, '0')}:${m.toString().padStart(2, '0')}:${s.toString().padStart(2, '0')}`;
+}
+
+// アイテムリスト
 let items = [
     { name: "Cursor", cost: 15, gps: 0.1, count: 0, unlocked: true, trigger: () => true, iconStr: "👆" },
     { name: "Grandma", cost: 100, gps: 1, count: 0, unlocked: false, trigger: () => items[0].count >= 1, iconStr: "👵" },
@@ -73,16 +84,16 @@ function clickCookie() {
     sound.playbackRate = 0.8 + (Math.random() * 0.4);
     sound.play().catch(() => {});
 
+    // ★統計：クリック数を加算
+    totalClicks++;
+
     let clickPower = 1;
-    // カーソル系のスキル効果
     if (skills[0].unlocked) clickPower *= 2;
     if (skills[1].unlocked) clickPower *= 2;
     if (skills[2].unlocked) clickPower *= 2;
-    // ラッキー効果
     if (skills[6].unlocked && Math.random() < 0.1) clickPower *= 10;
 
     let prestigeMultiplier = 1 + (prestigeLevel * 0.1);
-    // 天界チップの秘密スキル効果
     if (skills[7].unlocked) prestigeMultiplier = 1 + (prestigeLevel * 0.05);
 
     addCookies(clickPower * prestigeMultiplier * difficulty);
@@ -92,24 +103,21 @@ function addCookies(amount) {
     cookies += amount;
     totalCookies += amount;
     updateDisplay();
-    checkUnlocks(); // クッキーが増えたらアンロック確認
+    checkUnlocks();
 }
 
 function calculateGPS() {
     let totalGps = 0;
     items.forEach(item => {
         let production = item.gps * item.count;
-        // おばあちゃん系のスキル効果
         if (item.name === "Grandma") {
             if (skills[3].unlocked) production *= 2;
             if (skills[4].unlocked) production *= 2;
             if (skills[5].unlocked) production *= 2;
         }
-        // カーソルは、カーソル以外の施設の数で生産量が増える（本家仕様）
         if (item.name === "Cursor" && item.count > 0) {
              let nonCursorBuildings = 0;
              items.forEach(i => { if(i.name !== "Cursor") nonCursorBuildings += i.count; });
-             // 仮の計算：他の施設10個につき+1 (簡易版)
              production += Math.floor(nonCursorBuildings / 10) * item.count;
         }
         totalGps += production;
@@ -122,7 +130,6 @@ function calculateGPS() {
 }
 
 function updateDisplay() {
-    // クッキー数とCPSの表示更新（短縮表記）
     document.getElementById('score').innerText = formatNumber(cookies);
     document.getElementById('cps').innerText = formatNumber(calculateGPS());
     
@@ -130,29 +137,32 @@ function updateDisplay() {
     document.getElementById('prestige-effect').innerText = formatNumber(Math.floor(prestigeLevel * (skills[7].unlocked ? 5 : 10)));
     document.title = formatNumber(cookies) + " cookies";
 
-    // ストアのボタンの状態更新
+    // ★統計情報の更新処理
+    const statClicks = document.getElementById('stat-clicks');
+    const statTotal = document.getElementById('stat-total');
+    const statTime = document.getElementById('stat-time');
+    const statBuildings = document.getElementById('stat-buildings');
+
+    if (statClicks) {
+        statClicks.innerText = totalClicks.toLocaleString();
+        statTotal.innerText = formatNumber(totalCookies);
+        
+        let totalBuildings = items.reduce((sum, item) => sum + item.count, 0);
+        statBuildings.innerText = totalBuildings.toLocaleString();
+
+        let elapsed = Date.now() - startTime;
+        statTime.innerText = formatTime(elapsed);
+    }
+
+    // ストアのボタン更新
     items.forEach((item, i) => {
-        if (!item.unlocked) return; // アンロックされてないならスキップ
+        if (!item.unlocked) return;
         const btn = document.getElementById("shop-btn-" + i);
         if (btn) {
-            // 価格の再描画
             btn.querySelector('.item-cost').innerText = formatNumber(item.cost);
-            // 所持数の再描画
             btn.querySelector('.item-owned').innerText = item.count;
-            // 買えるかどうかのクラス付与
-            if (cookies >= item.cost) {
-                btn.classList.add('affordable');
-            } else {
-                btn.classList.remove('affordable');
-            }
-        }
-    });
-
-    // 研究所のボタンの状態更新
-    skills.forEach((skill, i) => {
-        if (!skill.unlocked && skill.trigger()) {
-             // まだ買ってなくて、条件を満たしているものだけ表示チェック
-             // (createSkillButtonsで生成されるので、ここでは更新不要)
+            if (cookies >= item.cost) btn.classList.add('affordable');
+            else btn.classList.remove('affordable');
         }
     });
 }
@@ -160,21 +170,14 @@ function updateDisplay() {
 // --- アンロック確認システム ---
 function checkUnlocks() {
     let changed = false;
-    // アイテムのアンロック確認
     items.forEach(item => {
         if (!item.unlocked && item.trigger()) {
             item.unlocked = true;
             changed = true;
         }
     });
-    // 研究所のアンロック確認（表示の更新）
-    skills.forEach(skill => {
-        // trigger()の結果が変わる可能性があるので、毎回再描画をかけるのが確実
-        changed = true; 
-    });
-
     if (changed) {
-        createShopButtons(); // リストを作り直す
+        createShopButtons();
         createSkillButtons();
     }
 }
@@ -198,31 +201,36 @@ function prestige() {
     if (confirm("Are you sure you want to ascend?")) {
         let earnedChips = Math.floor(totalCookies / 1000000);
         prestigeLevel += earnedChips;
-        cookies = 0; totalCookies = 0;
+        
+        // 転生時のリセット
+        cookies = 0;
+        totalCookies = 0;
         items.forEach(item => { item.count = 0; item.cost = getInitialCost(item.name); item.unlocked = item.trigger(); });
         skills.forEach(skill => skill.unlocked = false);
-        saveGame(); location.reload();
+        
+        // 統計は維持する（リセットしたい場合は下記を有効化）
+        // totalClicks = 0; startTime = Date.now();
+        
+        saveGame();
+        location.reload();
     }
 }
-// 初期コスト保持用（簡略化のためハードコード）
 const initialCosts = items.map(i => i.cost);
 function getInitialCost(name) {
     let idx = items.findIndex(i => i.name === name);
     return idx !== -1 ? initialCosts[idx] : 99999999;
 }
 
-// --- ボタン生成機能（本家風リスト） ---
+// --- ボタン生成機能 ---
 function createShopButtons() {
     const container = document.getElementById('shop-container');
     if (!container) return;
-    container.innerHTML = ""; // 一度クリア
+    container.innerHTML = "";
     items.forEach((item, index) => {
-        if (!item.unlocked) return; // ロックされていたら作らない
-
+        if (!item.unlocked) return;
         const btn = document.createElement("div");
         btn.className = "store-item";
         btn.id = "shop-btn-" + index;
-        // アイコンにはとりあえず絵文字を表示（将来的に画像に差し替え可能）
         btn.innerHTML = `
             <div class="item-icon-placeholder" style="display:flex;justify-content:center;align-items:center;font-size:30px;">${item.iconStr}</div>
             <div class="item-info">
@@ -237,7 +245,7 @@ function createShopButtons() {
                 item.count++;
                 item.cost = Math.ceil(item.cost * 1.15);
                 updateDisplay();
-                checkUnlocks(); // 新しい施設を買ったらアンロック確認
+                checkUnlocks();
             }
         };
         container.appendChild(btn);
@@ -249,13 +257,10 @@ function createSkillButtons() {
     if (!container) return;
     container.innerHTML = "";
     skills.forEach((skill, index) => {
-        // 未購入で、条件を満たしているものだけ表示
         if (!skill.unlocked && skill.trigger()) {
             const btn = document.createElement("div");
             btn.className = "skill-icon";
-            // アイコン（絵文字）
             btn.innerHTML = `<div style="font-size:30px;text-align:center;line-height:46px;">${skill.iconStr}</div>`;
-            // ツールチップ
             const tooltip = document.createElement("div");
             tooltip.className = "tooltip";
             tooltip.innerHTML = `
@@ -264,15 +269,13 @@ function createSkillButtons() {
                 <div style="color:${cookies >= skill.cost ? '#66cdaa' : '#f44336'};font-weight:bold;">Price: ${formatNumber(skill.cost)}</div>
             `;
             btn.appendChild(tooltip);
-
             if (cookies >= skill.cost) btn.classList.add('affordable');
-
             btn.onclick = () => {
                 if (cookies >= skill.cost) {
                     cookies -= skill.cost;
                     skill.unlocked = true;
                     updateDisplay();
-                    createSkillButtons(); // 買ったら消えるので再描画
+                    createSkillButtons();
                 }
             };
             container.appendChild(btn);
@@ -283,22 +286,32 @@ function createSkillButtons() {
 // --- セーブ＆ロード＆リセット ---
 function saveGame() {
     const saveData = {
-        cookies: cookies, totalCookies: totalCookies, prestigeLevel: prestigeLevel,
-        // アイテムはコストと所持数、アンロック状態を保存
+        cookies: cookies,
+        totalCookies: totalCookies,
+        prestigeLevel: prestigeLevel,
         items: items.map(i => ({ count: i.count, cost: i.cost, unlocked: i.unlocked })),
-        // スキルはアンロック状態のみ保存
         skills: skills.map(s => ({ unlocked: s.unlocked })),
         difficultyMode: difficultyName === "Easy" ? 'easy' : difficultyName === "Hard" ? 'hard' : difficultyName === "V.Hard" ? 'veryhard' : 'normal',
-        theme: currentTheme
+        theme: currentTheme,
+        
+        // ★統計データの保存
+        totalClicks: totalClicks,
+        startTime: startTime
     };
-    localStorage.setItem("myClickerSaveV6", JSON.stringify(saveData));
+    localStorage.setItem("myClickerSaveV7", JSON.stringify(saveData));
 }
 
 function loadGame() {
-    const data = JSON.parse(localStorage.getItem("myClickerSaveV6"));
+    const data = JSON.parse(localStorage.getItem("myClickerSaveV7"));
     if (data) {
-        cookies = data.cookies || 0; totalCookies = data.totalCookies || data.cookies;
+        cookies = data.cookies || 0;
+        totalCookies = data.totalCookies || data.cookies;
         prestigeLevel = data.prestigeLevel || 0;
+        
+        // ★統計データの読み込み
+        totalClicks = data.totalClicks || 0;
+        startTime = data.startTime || Date.now();
+
         if (data.items) {
             data.items.forEach((saved, i) => {
                 if (items[i]) { items[i].count = saved.count; items[i].cost = saved.cost; items[i].unlocked = saved.unlocked; }
@@ -309,25 +322,31 @@ function loadGame() {
                 if (skills[i]) skills[i].unlocked = saved.unlocked;
             });
         }
-        setMode(data.difficultyMode || 'normal'); changeTheme(data.theme || 'default');
+        setMode(data.difficultyMode || 'normal');
+        changeTheme(data.theme || 'default');
     } else {
-        setMode('normal'); changeTheme('default');
-        // 初回はカーソルだけアンロック
+        setMode('normal');
+        changeTheme('default');
         items[0].unlocked = true; 
     }
 }
+
 function resetGame() {
-    if (confirm("WARNING: Do you want to WIPE your entire save file? (Including Heavenly Chips)")) {
+    if (confirm("WARNING: Do you want to WIPE your entire save file?")) {
         let id = window.setInterval(function() {}, 0); while (id--) window.clearInterval(id);
-        localStorage.clear(); localStorage.setItem("myClickerSaveV6", null);
-        alert("Save file wiped."); location.reload();
+        localStorage.clear();
+        localStorage.setItem("myClickerSaveV7", null);
+        alert("Save file wiped.");
+        location.reload();
     }
 }
 
 // --- エンジン始動 ---
 window.onload = function() {
     loadGame();
-    checkUnlocks(); // 起動時にアンロック状態を確認してリスト作成
+    checkUnlocks();
+    createSkillButtons(); 
+    createShopButtons();
     updateDisplay();
 
     setInterval(() => {
