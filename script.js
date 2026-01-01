@@ -567,6 +567,7 @@ window.onload = function() {
     createSkillButtons(); 
     createShopButtons();
     updateDisplay();
+    scheduleNextGoldenCookie();
 
     setInterval(() => {
         let gps = calculateGPS();
