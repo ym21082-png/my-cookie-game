@@ -924,12 +924,10 @@ function changeBulk(amount) {
     
     // ボタンの見た目を更新（activeクラスの付け替え）
     document.querySelectorAll('.bulk-btn').forEach(btn => btn.classList.remove('active'));
-    document.getElementById('btn-' + amount).classList.add('active');
-
-    // ショップの表示価格を更新するために再描画
-    // ※あなたのコードに合わせて関数名を調整してください（例: renderShop() や updateUI() など）
-    // もしわからなければ、一旦ここはコメントアウトしても動きますが、価格表示が更新されません。
-    updateShopUI(); 
+    const activeBtn = document.getElementById('btn-' + amount);
+    if (activeBtn) activeBtn.classList.add('active');
+    
+    createShopButtons(); 
 }
 // 指定した個数分買った時の合計金額を計算する関数
 function getBulkPrice(basePrice, currentAmount) {
