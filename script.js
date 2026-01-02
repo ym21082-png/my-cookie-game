@@ -53,6 +53,7 @@ let difficultyName = "normal";
 let currentTheme = "default";
 let totalClicks = 0;
 let startTime = Date.now();
+let buyAmount = 1; // 今何個まとめ買いモードか（初期値は1）
 const baseSound = new Audio('click.mp3'); // 音源ファイルが必要
 
 // --- 実績（トロフィー）データ ---
@@ -836,4 +837,29 @@ function hideTooltip() {
     if (tooltip) {
         tooltip.style.display = "none";
     }
+}
+// まとめ買いの数を変更する関数
+function changeBulk(amount) {
+    buyAmount = amount;
+    
+    // ボタンの見た目を更新（activeクラスの付け替え）
+    document.querySelectorAll('.bulk-btn').forEach(btn => btn.classList.remove('active'));
+    document.getElementById('btn-' + amount).classList.add('active');
+
+    // ショップの表示価格を更新するために再描画
+    // ※あなたのコードに合わせて関数名を調整してください（例: renderShop() や updateUI() など）
+    // もしわからなければ、一旦ここはコメントアウトしても動きますが、価格表示が更新されません。
+    updateShopUI(); 
+}
+// 指定した個数分買った時の合計金額を計算する関数
+function getBulkPrice(basePrice, currentAmount) {
+    let price = basePrice;
+    let totalCost = 0;
+    
+    // シミュレーションして合計額を出す
+    for(let i = 0; i < currentAmount; i++) {
+        totalCost += price;
+        price = Math.ceil(price * 1.15); // 1.15倍ずつ高くなる計算
+    }
+    return totalCost;
 }
