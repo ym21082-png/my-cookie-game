@@ -174,6 +174,45 @@ function calculateGPS() {
     let prestigeMultiplier = 1 + (prestigeLevel * (isHeavenlyUnlocked("h1") ? 0.05 : 0.01));
     return totalGps * prestigeMultiplier * difficulty * buffMultiplier;
 }
+// ▼ 新しく追加する関数 ▼
+// アイテムを購入するメインの処理
+function buyBuilding(id) {
+    // 1. どのアイテムを買おうとしているか探す
+    // (buildings という配列にデータが入っている前提です)
+    const building = buildings.find(b => b.id === id);
+    
+    // アイテムが見つからない場合は何もしない
+    if (!building) {
+        console.error("アイテムが見つかりません ID:", id);
+        return;
+    }
+
+    // 2. 現在の「まとめ買いモード(1個 or 10個...)」に合わせて価格を計算
+    // (getBulkPrice関数はさっき作りましたね)
+    const totalCost = getBulkPrice(building.cost, buyAmount);
+
+    // 3. お金（クッキー）が足りているかチェック
+    if (score >= totalCost) {
+        // お金を払う
+        score -= totalCost;
+
+        // 4. 指定された個数分、アイテムを増やす処理
+        for(let i = 0; i < buyAmount; i++) {
+            building.count++;
+            // 価格を更新 (1.15倍にする)
+            building.cost = Math.ceil(building.cost * 1.15);
+        }
+
+        // 5. 画面を更新して、新しい価格や個数を表示する
+        // (updateShopUI という関数で画面を作っている場合)
+        updateShopUI(); 
+        
+        // もし生産量(CpS)の再計算が必要ならここに入れる
+        // updateCpS(); 
+    } else {
+        console.log("お金が足りません！");
+    }
+}
 
 function isHeavenlyUnlocked(id) {
     const upgrade = heavenlyUpgrades.find(u => u.id === id);
@@ -863,3 +902,58 @@ function getBulkPrice(basePrice, currentAmount) {
     }
     return totalCost;
 }
+// ショップの表示を更新する関数
+function updateShopUI() {
+    // 画面上のスコア表示などを更新
+    document.getElementById('score').innerText = formatNumber(score) + " クッキー"; // IDは確認してください
+    
+    // ショップの枠（IDは index.html と合わせてください。store-container 等）
+    const shopContainer = document.getElementById('store-container'); 
+    shopContainer.innerHTML = ""; // 一旦空にする
+
+    // 全アイテムをループしてボタンを作る
+    buildings.forEach(building => {
+        // ▼▼▼ ここが重要：まとめ買い価格を計算 ▼▼▼
+        const currentPrice = getBulkPrice(building.cost, buyAmount);
+        const canAfford = score >= currentPrice;
+        
+        // ボタンのHTMLを作る
+        // アイテムのボタンを作る部分（div や button を作っている場所）
+const div = document.createElement('div'); // または button
+div.className = 'item'; 
+
+// ★★★ ここが重要！ ★★★
+// クリックされたら、さっき作った buyBuilding を実行するように設定
+div.onclick = function() { 
+    buyBuilding(building.id); 
+};
+
+        // ツールチップ用のデータ準備
+        const statsInfo = `Each produces ${formatNumber(building.cps * buyAmount)} CpS`; // まとめ買い分の生産量表示
+
+        // マウスが乗った時にツールチップを表示
+        div.onmouseover = function() { 
+            showTooltip(this, building.name, building.desc, statsInfo, currentPrice, canAfford); 
+        };
+        // マウスが離れたら消す
+        div.onmouseout = function() { hideTooltip(); };
+
+        // ボタンの中身（アイコン、名前、持ってる数、価格）
+        div.innerHTML = `
+            <div class="icon">ExampleIcon</div> <div class="content">
+                <div class="name">${building.name}</div>
+                <div class="price price-${canAfford ? 'green' : 'red'}">
+                    💎 ${formatNumber(currentPrice)}
+                </div>
+            </div>
+            <div class="amount">${formatNumber(building.count)}</div>
+        `;
+
+        shopContainer.appendChild(div);
+    });
+}
+// ゲーム開始時に1回呼び出す
+updateShopUI();
+
+// 1秒ごとのループやクリック処理の中でも updateShopUI() を呼んで、
+// クッキーが増えるたびに「買える色」が変わるようにするとベストです。
