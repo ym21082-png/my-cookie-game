@@ -167,6 +167,35 @@ let skills = [
     { name: "Carpal Tunnel", cost: 500, desc: "Clicking is 2x as efficient.", unlocked: false, trigger: () => items[0].count >= 10, iconStr: "👆" },
     { name: "Forwards from grandma", cost: 1000, desc: "Grandmas are 2x as efficient.", unlocked: false, trigger: () => items[1].count >= 1, iconStr: "👵" },
     { name: "Lucky Cookie", cost: 77777, desc: "Clicks have a 10% chance to be x10.", unlocked: false, trigger: () => totalCookies >= 7777, iconStr: "🍀" }
+    // 農場 (Farm) 用
+    { name: "Cheap Hoes", cost: 11000, desc: "Farms are 2x as efficient.", unlocked: false, trigger: () => items[2].count >= 10, iconStr: "🌾", target: "Farm" },
+    { name: "Fertilizer", cost: 55000, desc: "Farms are 2x as efficient.", unlocked: false, trigger: () => items[2].count >= 50, iconStr: "💩", target: "Farm" },
+
+    // 鉱山 (Mine) 用
+    { name: "Sugar Gas", cost: 120000, desc: "Mines are 2x as efficient.", unlocked: false, trigger: () => items[3].count >= 10, iconStr: "⛏️", target: "Mine" },
+    { name: "Megadrill", cost: 600000, desc: "Mines are 2x as efficient.", unlocked: false, trigger: () => items[3].count >= 50, iconStr: "🔩", target: "Mine" },
+
+    // 工場 (Factory) 用
+    { name: "Sturdier Conveyor Belts", cost: 1300000, desc: "Factories are 2x as efficient.", unlocked: false, trigger: () => items[4].count >= 10, iconStr: "🏭", target: "Factory" },
+
+    // 銀行 (Bank) 用
+    { name: "Gold Bullion", cost: 14000000, desc: "Banks are 2x as efficient.", unlocked: false, trigger: () => items[5].count >= 10, iconStr: "🏦", target: "Bank" },
+
+    // 寺院 (Temple) 用
+    { name: "Golden Idols", cost: 200000000, desc: "Temples are 2x as efficient.", unlocked: false, trigger: () => items[6].count >= 10, iconStr: "🏛️", target: "Temple" },
+
+    // 魔法の塔 (Wizard Tower) 用
+    { name: "Grimoires", cost: 3300000000, desc: "Wizard Towers are 2x as efficient.", unlocked: false, trigger: () => items[7].count >= 10, iconStr: "🧙‍♂️", target: "Wizard Tower" },
+
+    // ロケット (Shipment) 用
+    { name: "Vanilla Planet", cost: 51000000000, desc: "Shipments are 2x as efficient.", unlocked: false, trigger: () => items[8].count >= 10, iconStr: "🚀", target: "Shipment" },
+
+    // 錬金術 (Alchemy Lab) 用
+    { name: "Antimony", cost: 750000000000, desc: "Alchemy Labs are 2x as efficient.", unlocked: false, trigger: () => items[9].count >= 10, iconStr: "⚗️", target: "Alchemy Lab" },
+    
+    // ポータル (Portal) 用
+    { name: "Ancient Tablet", cost: 10000000000000, desc: "Portals are 2x as efficient.", unlocked: false, trigger: () => items[10] && items[10].count >= 10, iconStr: "🌀", target: "Portal" }
+];
 ];
 
 const baseSound = new Audio('click.mp3');
@@ -216,12 +245,26 @@ function createFloatingText(x, y, text) {
         el.remove();
     }, 1000);
 }
-function addCookies(amount) {
-    cookies += amount;
-    totalCookies += amount;
-    lifetimeCookies += amount;
-    updateDisplay();
-    checkUnlocks();
+function calculateGPS() {
+    let totalGps = 0;
+
+    items.forEach(item => {
+        let production = item.gps * item.count;
+        
+        // ★改良点：すべてのスキルをチェックして、この建物(item)用の強化があるか探す
+        skills.forEach(skill => {
+            if (skill.unlocked && skill.target === item.name) {
+                production *= 2; // 対象のスキルを持っていれば2倍！
+            }
+        });
+
+        totalGps += production;
+    });
+
+    // 天界ボーナス
+    let prestigeMultiplier = 1 + (prestigeLevel * (isHeavenlyUnlocked("h1") ? 0.05 : 0.01));
+
+    return totalGps * prestigeMultiplier * difficulty * buffMultiplier;
 }
 
 function calculateGPS() {
@@ -545,7 +588,6 @@ function loadGame() {
         totalClicks = data.totalClicks || 0;
         startTime = data.startTime || Date.now();
 
-        // ★★★ ここが最重要修正ポイント！ ★★★
         if (data.items) {
             data.items.forEach((saved, i) => {
                 if (items[i]) {
@@ -559,7 +601,6 @@ function loadGame() {
                 }
             });
         }
-        // ★★★ 修正ここまで ★★★
 
         if (data.skills) {
             data.skills.forEach((saved, i) => { if (skills[i]) skills[i].unlocked = saved.unlocked; });
