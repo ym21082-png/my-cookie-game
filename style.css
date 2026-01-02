@@ -478,28 +478,19 @@ body.dark #left-column {
 
 /* ツールチップの基本設定 */
 .tooltip {
-    visibility: hidden;
-    width: 220px;
-    background-color: rgba(0, 0, 0, 0.9);
+    display: none; /* 普段は隠す */
+    position: fixed; /* 画面に対して固定（重要！） */
+    z-index: 10000; /* 何よりも上に表示 */
+    width: 250px;
+    background-color: rgba(0, 0, 0, 0.95);
+    border: 1px solid #999;
+    border-radius: 8px;
+    padding: 12px;
     color: #fff;
-    text-align: left;
-    border-radius: 6px;
-    padding: 10px;
-    position: absolute;
-    z-index: 100;
-    
-    /* 位置の調整（ボタンの左側に表示） */
-    top: 50%;
-    right: 110%; /* 右端から110%左へ（つまりボタンの左外側） */
-    transform: translateY(-50%);
-    
-    border: 1px solid #666;
-    box-shadow: 0 4px 8px rgba(0,0,0,0.5);
-    opacity: 0;
-    transition: opacity 0.2s;
-    pointer-events: none; /* マウスイベントを邪魔しない */
     font-size: 14px;
-    line-height: 1.4;
+    line-height: 1.5;
+    box-shadow: 0 4px 12px rgba(0,0,0,0.8);
+    pointer-events: none; /* マウスの邪魔をしない */
 }
 
 /* マウスが乗ったときだけ表示 */
@@ -509,18 +500,29 @@ body.dark #left-column {
     opacity: 1;
 }
 
-/* 重要な数字を強調 */
-.tooltip strong {
-    color: #ffcc00;
-}
-.tooltip .price {
-    color: #66cdaa;
+/* ツールチップ内の装飾 */
+.tooltip-title {
     font-weight: bold;
-    margin-top: 5px;
-    display: block;
-    border-top: 1px solid #444;
-    padding-top: 5px;
+    font-size: 1.2em;
+    color: #ffcc00;
+    margin-bottom: 5px;
+    border-bottom: 1px solid #444;
+    padding-bottom: 3px;
 }
-.tooltip .cant-afford {
+.tooltip-desc {
+    font-size: 0.9em;
+    color: #ccc;
+    margin-bottom: 8px;
+    font-style: italic;
+}
+.tooltip-stat {
+    font-size: 0.95em;
+}
+.tooltip-price {
+    margin-top: 8px;
+    font-weight: bold;
+    color: #66cdaa;
+}
+.tooltip-price.cant-afford {
     color: #ff6666;
 }
