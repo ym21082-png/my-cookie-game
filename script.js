@@ -729,6 +729,7 @@ window.onbeforeunload = function() {
 
 // ツールチップを表示する関数
 function showTooltip(element, title, desc, statsHtml, price, canAfford) {
+    console.log("マウス反応あり！ツールチップを表示しようとしています！");
     const tooltip = document.getElementById('global-tooltip');
     if (!tooltip) return;
 
