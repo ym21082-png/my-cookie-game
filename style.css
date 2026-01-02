@@ -529,3 +529,26 @@ body.dark #left-column {
 #global-tooltip {
     /* 普段は隠すけど、JSが表示指示を出したらちゃんと出るようにする */
 }
+/* --- ツールチップを強制的に最前面に出す設定 --- */
+#global-tooltip {
+    position: fixed !important; /* 画面の定位置に固定 */
+    z-index: 999999 !important; /* 他のどの要素よりも手前に表示！ */
+    background-color: rgba(0, 0, 0, 0.9); /* 背景を黒く */
+    border: 1px solid #fff; /* 白い枠線 */
+    color: #fff; /* 白い文字 */
+    padding: 10px;
+    border-radius: 5px;
+    pointer-events: none; /* マウスの邪魔をしない */
+    display: none; /* 最初は隠しておく */
+    font-size: 14px;
+    line-height: 1.4;
+    min-width: 200px;
+    box-shadow: 0 4px 10px rgba(0,0,0,0.5);
+}
+
+/* ツールチップ内の文字色 */
+.tooltip-title { font-weight: bold; color: #ffcc00; margin-bottom: 5px; font-size: 16px; }
+.tooltip-desc { color: #ccc; margin-bottom: 5px; font-style: italic; }
+.tooltip-stat { color: #fff; margin-bottom: 5px; }
+.tooltip-price { color: #6f6; font-weight: bold; }
+.tooltip-price.cant-afford { color: #f66; }
