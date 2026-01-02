@@ -986,7 +986,7 @@ function updateShopUI() {
             <div class="icon" style="font-size: 24px; margin-right: 10px;">🍪</div> <div class="content">
                 <div class="name" style="font-weight: bold;">${building.name}</div>
                 <div class="price" style="color: ${canAfford ? '#6f6' : '#f66'}; font-weight: bold;">
-                    💎 ${formatNumber(currentPrice)}
+                    🍪 ${formatNumber(currentPrice)}
                 </div>
             </div>
             <div class="amount" style="font-size: 24px; margin-left: auto;">${formatNumber(building.count)}</div>
