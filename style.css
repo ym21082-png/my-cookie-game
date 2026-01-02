@@ -552,3 +552,59 @@ body.dark #left-column {
 .tooltip-stat { color: #fff; margin-bottom: 5px; }
 .tooltip-price { color: #6f6; font-weight: bold; }
 .tooltip-price.cant-afford { color: #f66; }
+/* --- ツールチップを強制的に表示させる魔法のコード --- */
+#global-tooltip {
+    /* 隠れているのを無理やり出す */
+    display: none; /* JSでblockにされるまで隠す */
+    position: fixed !important; 
+    z-index: 2147483647 !important; /* 世界で一番手前に表示する数値 */
+    
+    /* 見た目の設定（黒い箱） */
+    background-color: rgba(0, 0, 0, 0.95);
+    border: 2px solid #ffffff;
+    border-radius: 8px;
+    padding: 15px;
+    color: #ffffff;
+    
+    /* 影をつけて浮き上がらせる */
+    box-shadow: 0 0 20px rgba(0,0,0,0.8);
+    
+    /* マウスの邪魔をしない */
+    pointer-events: none;
+    
+    /* サイズ調整 */
+    min-width: 250px;
+    max-width: 350px;
+    font-family: sans-serif;
+    line-height: 1.5;
+}
+
+/* 中身の文字の色分け */
+.tooltip-title {
+    font-size: 18px;
+    font-weight: bold;
+    color: #ffcc00; /* 金色 */
+    margin-bottom: 5px;
+    border-bottom: 1px solid #555;
+    padding-bottom: 3px;
+}
+.tooltip-desc {
+    font-size: 14px;
+    color: #cccccc; /* 薄いグレー */
+    margin-bottom: 10px;
+    font-style: italic;
+}
+.tooltip-stat {
+    font-size: 14px;
+    color: #ffffff;
+}
+.tooltip-price {
+    margin-top: 8px;
+    font-size: 16px;
+    font-weight: bold;
+    color: #66ff66; /* 緑色 */
+    text-align: right;
+}
+.tooltip-price.cant-afford {
+    color: #ff4444; /* 赤色 */
+}
