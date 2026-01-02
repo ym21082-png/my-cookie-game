@@ -662,3 +662,38 @@ body.dark #left-column {
 .tooltip-price.cant-afford {
     color: #f66; /* 赤色 */
 }
+/* --- まとめ買いボタンのスタイル --- */
+#bulk-control {
+    padding: 10px;
+    background-color: #eee;
+    border-bottom: 1px solid #ccc;
+    text-align: center;
+}
+
+.bulk-label {
+    font-weight: bold;
+    margin-right: 5px;
+    color: #333;
+}
+
+.bulk-btn {
+    background: #fff;
+    border: 1px solid #999;
+    padding: 4px 10px;
+    margin: 0 2px;
+    cursor: pointer;
+    border-radius: 3px;
+    font-weight: bold;
+    color: #555;
+}
+
+.bulk-btn:hover {
+    background: #ddd;
+}
+
+/* 選択中のボタンを目立たせる */
+.bulk-btn.active {
+    background: #444;
+    color: #fff;
+    border-color: #222;
+}
