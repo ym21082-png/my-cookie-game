@@ -471,3 +471,56 @@ body.dark #left-column {
     background: rgba(255, 215, 0, 0.1);
     border: 1px solid gold;
 }
+/* --- ツールチップ（説明ポップアップ）のデザイン --- */
+.store-item, .skill-icon {
+    position: relative; /* これがないと位置がずれる */
+}
+
+/* ツールチップの基本設定 */
+.tooltip {
+    visibility: hidden;
+    width: 220px;
+    background-color: rgba(0, 0, 0, 0.9);
+    color: #fff;
+    text-align: left;
+    border-radius: 6px;
+    padding: 10px;
+    position: absolute;
+    z-index: 100;
+    
+    /* 位置の調整（ボタンの左側に表示） */
+    top: 50%;
+    right: 110%; /* 右端から110%左へ（つまりボタンの左外側） */
+    transform: translateY(-50%);
+    
+    border: 1px solid #666;
+    box-shadow: 0 4px 8px rgba(0,0,0,0.5);
+    opacity: 0;
+    transition: opacity 0.2s;
+    pointer-events: none; /* マウスイベントを邪魔しない */
+    font-size: 14px;
+    line-height: 1.4;
+}
+
+/* マウスが乗ったときだけ表示 */
+.store-item:hover .tooltip,
+.skill-icon:hover .tooltip {
+    visibility: visible;
+    opacity: 1;
+}
+
+/* 重要な数字を強調 */
+.tooltip strong {
+    color: #ffcc00;
+}
+.tooltip .price {
+    color: #66cdaa;
+    font-weight: bold;
+    margin-top: 5px;
+    display: block;
+    border-top: 1px solid #444;
+    padding-top: 5px;
+}
+.tooltip .cant-afford {
+    color: #ff6666;
+}
