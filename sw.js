@@ -1,5 +1,5 @@
 // バージョン名（ここを v1, v2... と変えることで更新を反映させます）
-const CACHE_NAME = "cookie-clicker-v4";
+const CACHE_NAME = "cookie-clicker-v5";
 
 // キャッシュするファイルのリスト
 const urlsToCache = [
