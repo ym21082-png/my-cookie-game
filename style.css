@@ -608,3 +608,57 @@ body.dark #left-column {
 .tooltip-price.cant-afford {
     color: #ff4444; /* 赤色 */
 }
+/* --- ツールチップの見た目設定 --- */
+#global-tooltip {
+    position: fixed;         /* 画面上の絶対位置に固定 */
+    z-index: 10000;          /* 他のすべての要素より手前に表示 */
+    background-color: rgba(0, 0, 0, 0.9); /* 背景は少し透けた黒 */
+    color: #fff;             /* 文字は白 */
+    border: 2px solid #555;  /* 枠線 */
+    padding: 10px;           /* 内側の余白 */
+    border-radius: 5px;      /* 角を丸く */
+    width: 300px;            /* 幅 */
+    pointer-events: none;    /* マウスの邪魔をしないようにする */
+    font-family: sans-serif; /* フォント */
+    font-size: 14px;
+    box-shadow: 0 4px 8px rgba(0,0,0,0.5); /* 影をつける */
+    display: none;           /* 最初は隠しておく */
+}
+
+/* ツールチップ内のタイトル */
+.tooltip-title {
+    font-weight: bold;
+    font-size: 16px;
+    margin-bottom: 5px;
+    color: #fff;
+    border-bottom: 1px solid #777;
+    padding-bottom: 3px;
+}
+
+/* ツールチップ内の説明文 */
+.tooltip-desc {
+    font-size: 12px;
+    color: #ccc;
+    margin-bottom: 8px;
+    font-style: italic;
+}
+
+/* 生産量などのデータ */
+.tooltip-stat {
+    font-size: 13px;
+    color: #eee;
+    margin-bottom: 5px;
+}
+
+/* 価格表示 */
+.tooltip-price {
+    font-weight: bold;
+    color: #6f6; /* 緑色 */
+    text-align: right;
+    margin-top: 5px;
+}
+
+/* お金が足りない時の価格色 */
+.tooltip-price.cant-afford {
+    color: #f66; /* 赤色 */
+}
