@@ -519,3 +519,13 @@ body.dark #left-column {
 .tooltip-price.cant-afford {
     color: #ff6666;
 }
+/* --- 【緊急修正パッチ】ボタンの中にある古いツールチップを強制的に消す --- */
+.store-item .tooltip, 
+.skill-icon .tooltip {
+    display: none !important;
+}
+
+/* --- 新しい「全体ツールチップ」だけは表示を許可する --- */
+#global-tooltip {
+    /* 普段は隠すけど、JSが表示指示を出したらちゃんと出るようにする */
+}
