@@ -210,6 +210,7 @@ function updateDisplay() {
     }
 }
 
+// ショップボタン作成（詳細ツールチップ付き）
 function createShopButtons() {
     const container = document.getElementById('shop-container');
     if (!container) return;
@@ -218,6 +219,7 @@ function createShopButtons() {
     items.forEach((item, index) => {
         if (!item.unlocked) return;
         
+        // 割引計算
         let displayCost = item.cost;
         if (isHeavenlyUnlocked("h3")) displayCost = Math.floor(displayCost * 0.95);
 
@@ -227,6 +229,10 @@ function createShopButtons() {
         
         if (cookies >= displayCost) btn.classList.add('affordable');
         
+        // ツールチップの中身を作る
+        // item.gps は基本性能ですが、スキルで倍になっている可能性があるので計算し直すのがベスト
+        // 今回は簡易的に表示します
+        
         btn.innerHTML = `
             <div class="item-icon-placeholder" style="display:flex;justify-content:center;align-items:center;font-size:30px;">${item.iconStr}</div>
             <div class="item-info">
@@ -234,6 +240,16 @@ function createShopButtons() {
                 <div class="item-cost">${formatNumber(displayCost)}</div>
             </div>
             <div class="item-owned">${item.count}</div>
+
+            <div class="tooltip">
+                <div style="font-weight:bold; font-size:1.1em; margin-bottom:4px;">${t(item.name)}</div>
+                <div style="font-size:0.9em; color:#ccc; margin-bottom:8px;">Produces cookies automatically.</div>
+                <div>Each produces: <strong>${formatNumber(item.gps)} CpS</strong></div>
+                <div>You own: <strong>${item.count}</strong></div>
+                <div class="${cookies >= displayCost ? 'price' : 'price cant-afford'}">
+                    Cost: ${formatNumber(displayCost)}
+                </div>
+            </div>
         `;
         btn.onclick = () => buyItem(index);
         container.appendChild(btn);
@@ -259,6 +275,7 @@ function buyItem(id) {
     }
 }
 
+// スキルボタン作成（詳細ツールチップ付き）
 function createSkillButtons() {
     const container = document.getElementById('lab-container');
     if (!container) return;
@@ -267,14 +284,19 @@ function createSkillButtons() {
         if (!skill.unlocked && skill.trigger()) {
             const btn = document.createElement("div");
             btn.className = "skill-icon";
+            // スキルアイコン
             btn.innerHTML = `<div style="font-size:30px;text-align:center;line-height:46px;">${skill.iconStr}</div>`;
             
+            // 色判定
+            let colorClass = cookies >= skill.cost ? 'price' : 'price cant-afford';
+
+            // ★詳細情報のポップアップ
             const tooltip = document.createElement("div");
             tooltip.className = "tooltip";
             tooltip.innerHTML = `
-                <div style="font-weight:bold;margin-bottom:5px;">${skill.name}</div>
-                <div style="font-size:0.9em;margin-bottom:5px;">${skill.desc}</div>
-                <div style="color:${cookies >= skill.cost ? '#66cdaa' : '#f44336'};font-weight:bold;">Price: ${formatNumber(skill.cost)}</div>
+                <div style="font-weight:bold; margin-bottom:5px; color:#ffcc00;">${skill.name}</div>
+                <div style="font-size:0.9em; margin-bottom:5px;">${skill.desc}</div>
+                <div class="${colorClass}">Price: ${formatNumber(skill.cost)}</div>
             `;
             btn.appendChild(tooltip);
             
@@ -283,6 +305,12 @@ function createSkillButtons() {
                 if (cookies >= skill.cost) {
                     cookies -= skill.cost;
                     skill.unlocked = true;
+                    
+                    // 音を鳴らす
+                    const sound = baseSound.cloneNode();
+                    sound.playbackRate = 1.2;
+                    sound.play().catch(()=>{});
+
                     updateDisplay();
                     createSkillButtons();
                 }
