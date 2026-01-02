@@ -210,11 +210,11 @@ function updateDisplay() {
     }
 }
 
-// ショップボタン作成（修正版）
+// --- ショップボタン作成（完全に新しいバージョン） ---
 function createShopButtons() {
     const container = document.getElementById('shop-container');
     if (!container) return;
-    container.innerHTML = "";
+    container.innerHTML = ""; // 一度空っぽにする
     
     items.forEach((item, index) => {
         if (!item.unlocked) return;
@@ -228,6 +228,7 @@ function createShopButtons() {
         
         if (cookies >= displayCost) btn.classList.add('affordable');
         
+        // ★ここがポイント：以前あった「tooltip」というdivはここには書きません！
         btn.innerHTML = `
             <div class="item-icon-placeholder" style="display:flex;justify-content:center;align-items:center;font-size:30px;">${item.iconStr}</div>
             <div class="item-info">
@@ -237,17 +238,23 @@ function createShopButtons() {
             <div class="item-owned">${item.count}</div>
         `;
 
-        // ★ここが変わった：マウスイベントで関数を呼ぶ
+        // マウスを乗せたときに、外にある「global-tooltip」を呼び出す
         btn.onmouseenter = function() {
             let stats = `Each produces: <strong>${formatNumber(item.gps)} CpS</strong><br>Owned: <strong>${item.count}</strong>`;
-            showTooltip(this, t(item.name), "Produces cookies automatically.", stats, displayCost, cookies >= displayCost);
+            // showTooltip関数が正しく定義されている必要があります
+            if (typeof showTooltip === "function") {
+                showTooltip(this, t(item.name), "Produces cookies automatically.", stats, displayCost, cookies >= displayCost);
+            }
         };
-        btn.onmouseleave = hideTooltip;
+
+        // マウスが離れたら隠す
+        btn.onmouseleave = function() {
+            if (typeof hideTooltip === "function") hideTooltip();
+        };
 
         btn.onclick = () => {
             buyItem(index);
-            // 買った直後にツールチップの値段色などを更新するために一度隠す（あるいは再描画してもよい）
-            hideTooltip(); 
+            if (typeof hideTooltip === "function") hideTooltip();
         };
         container.appendChild(btn);
     });
