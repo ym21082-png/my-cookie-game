@@ -210,7 +210,7 @@ function updateDisplay() {
     }
 }
 
-// --- ショップボタン作成（クリーン版） ---
+// --- ショップボタン作成（完全に新しいバージョン） ---
 function createShopButtons() {
     const container = document.getElementById('shop-container');
     if (!container) return;
@@ -229,8 +229,8 @@ function createShopButtons() {
         if (cookies >= displayCost) btn.classList.add('affordable');
         
         // ★ここが修正ポイント！
-        // さっきまではここに <div class="tooltip">...</div> という記述がありましたが
-        // それを完全に削除しました。これでもう黒い帯は出ません。
+        // 以前あった <div class="tooltip">...</div> を完全に削除しました。
+        // これでボタンの中に黒い帯が作られることは二度とありません。
         btn.innerHTML = `
             <div class="item-icon-placeholder" style="display:flex;justify-content:center;align-items:center;font-size:30px;">${item.iconStr}</div>
             <div class="item-info">
@@ -281,7 +281,7 @@ function buyItem(id) {
     }
 }
 
-// --- スキルボタン作成（クリーン版） ---
+// --- スキルボタン作成（完全に新しいバージョン） ---
 function createSkillButtons() {
     const container = document.getElementById('lab-container');
     if (!container) return;
@@ -291,7 +291,8 @@ function createSkillButtons() {
         if (!skill.unlocked && skill.trigger()) {
             const btn = document.createElement("div");
             btn.className = "skill-icon";
-            // ここにもツールチップのHTMLは含めない
+            
+            // ここにもツールチップのHTML（<div class="tooltip">）は含めません
             btn.innerHTML = `<div style="font-size:30px;text-align:center;line-height:46px;">${skill.iconStr}</div>`;
             
             if (cookies >= skill.cost) btn.classList.add('affordable');
