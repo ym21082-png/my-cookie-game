@@ -904,32 +904,34 @@ function getBulkPrice(basePrice, currentAmount) {
 }
 // ショップの表示を更新する関数
 function updateShopUI() {
-    // 画面上のスコア表示などを更新
-    document.getElementById('score').innerText = formatNumber(score) + " クッキー"; // IDは確認してください
+    // スコア表示の更新（念のため）
+    const scoreEl = document.getElementById('score');
+    if (scoreEl) scoreEl.innerText = formatNumber(score);
     
-    // ショップの枠（IDは index.html と合わせてください。store-container 等）
-    const shopContainer = document.getElementById('store-container'); 
-    shopContainer.innerHTML = ""; // 一旦空にする
+    // ▼▼▼ ここを修正しました（HTMLのID 'shop-container' に合わせました） ▼▼▼
+    const shopContainer = document.getElementById('shop-container'); 
+    
+    if (!shopContainer) return; // エラー防止
+
+    shopContainer.innerHTML = ""; // 中身をリセット
 
     // 全アイテムをループしてボタンを作る
     buildings.forEach(building => {
-        // ▼▼▼ ここが重要：まとめ買い価格を計算 ▼▼▼
+        // まとめ買い価格を計算
         const currentPrice = getBulkPrice(building.cost, buyAmount);
         const canAfford = score >= currentPrice;
         
         // ボタンのHTMLを作る
-        // アイテムのボタンを作る部分（div や button を作っている場所）
-const div = document.createElement('div'); // または button
-div.className = 'item'; 
-
-// ★★★ ここが重要！ ★★★
-// クリックされたら、さっき作った buyBuilding を実行するように設定
-div.onclick = function() { 
-    buyBuilding(building.id); 
-};
+        const div = document.createElement('div');
+        div.className = 'item' + (canAfford ? '' : ' locked'); // お金不足なら半透明にするクラス
+        
+        // クリック時の動作
+        div.onclick = function() { 
+            buyBuilding(building.id); 
+        };
 
         // ツールチップ用のデータ準備
-        const statsInfo = `Each produces ${formatNumber(building.cps * buyAmount)} CpS`; // まとめ買い分の生産量表示
+        const statsInfo = `Each produces ${formatNumber(building.cps * buyAmount)} CpS`; 
 
         // マウスが乗った時にツールチップを表示
         div.onmouseover = function() { 
@@ -938,15 +940,15 @@ div.onclick = function() {
         // マウスが離れたら消す
         div.onmouseout = function() { hideTooltip(); };
 
-        // ボタンの中身（アイコン、名前、持ってる数、価格）
+        // ボタンの中身（アイコン、名前、価格、持ってる数）
         div.innerHTML = `
-            <div class="icon">ExampleIcon</div> <div class="content">
-                <div class="name">${building.name}</div>
-                <div class="price price-${canAfford ? 'green' : 'red'}">
+            <div class="icon" style="font-size: 24px; margin-right: 10px;">🍪</div> <div class="content">
+                <div class="name" style="font-weight: bold;">${building.name}</div>
+                <div class="price" style="color: ${canAfford ? '#6f6' : '#f66'}; font-weight: bold;">
                     💎 ${formatNumber(currentPrice)}
                 </div>
             </div>
-            <div class="amount">${formatNumber(building.count)}</div>
+            <div class="amount" style="font-size: 24px; margin-left: auto;">${formatNumber(building.count)}</div>
         `;
 
         shopContainer.appendChild(div);
