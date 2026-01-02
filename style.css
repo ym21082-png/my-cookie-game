@@ -493,13 +493,6 @@ body.dark #left-column {
     pointer-events: none; /* マウスの邪魔をしない */
 }
 
-/* マウスが乗ったときだけ表示 */
-.store-item:hover .tooltip,
-.skill-icon:hover .tooltip {
-    visibility: visible;
-    opacity: 1;
-}
-
 /* ツールチップ内の装飾 */
 .tooltip-title {
     font-weight: bold;
