@@ -366,7 +366,7 @@ function createShopButtons() {
             <div class="item-info" style="pointer-events:none;">
                 <div class="item-name">${t(item.name)}</div>
                 <div class="item-cost" style="color: ${cookies >= displayCost ? '#6f6' : '#f66'}">
-                    💎 ${formatNumber(displayCost)}
+                    🍪 ${formatNumber(displayCost)}
                 </div>
             </div>
             <div class="item-owned" style="pointer-events:none;">${item.count}</div>
