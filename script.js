@@ -281,7 +281,82 @@ function buyItem(id) {
     }
 }
 
-// --- スキルボタン作成（完全に新しいバージョン） ---
+// --- ショップボタン作成（修正版） ---
+function createShopButtons() {
+    const container = document.getElementById('shop-container');
+    if (!container) return;
+    container.innerHTML = ""; // 一度空っぽにする
+    
+    items.forEach((item, index) => {
+        if (!item.unlocked) return;
+        
+        let displayCost = item.cost;
+        if (isHeavenlyUnlocked("h3")) displayCost = Math.floor(displayCost * 0.95);
+
+        const btn = document.createElement("div");
+        btn.className = "store-item";
+        btn.id = "shop-btn-" + index;
+        
+        if (cookies >= displayCost) btn.classList.add('affordable');
+        
+        // ボタンの中身（HTML）
+        btn.innerHTML = `
+            <div class="item-icon-placeholder" style="display:flex;justify-content:center;align-items:center;font-size:30px; pointer-events:none;">${item.iconStr}</div>
+            <div class="item-info" style="pointer-events:none;">
+                <div class="item-name">${t(item.name)}</div>
+                <div class="item-cost">${formatNumber(displayCost)}</div>
+            </div>
+            <div class="item-owned" style="pointer-events:none;">${item.count}</div>
+        `;
+
+        // ★マウスイベント：確実に反応するように addEventListener を使用
+        btn.addEventListener('mouseenter', function() {
+            let stats = `Each produces: <strong>${formatNumber(item.gps)} CpS</strong><br>Owned: <strong>${item.count}</strong>`;
+            
+            // ツールチップを表示する関数を呼ぶ
+            showTooltip(this, t(item.name), "Produces cookies automatically.", stats, displayCost, cookies >= displayCost);
+        });
+
+        btn.addEventListener('mouseleave', function() {
+            hideTooltip();
+        });
+
+        btn.onclick = () => {
+            buyItem(index);
+            hideTooltip(); // 買った瞬間はいったん隠す
+        };
+        container.appendChild(btn);
+    });
+}
+
+function buyItem(id) {
+    const item = items[id];
+    let currentCost = item.cost;
+    if (isHeavenlyUnlocked("h3")) currentCost = Math.floor(currentCost * 0.95);
+
+    if (cookies >= currentCost) {
+        cookies -= currentCost;
+        item.count++;
+        item.cost = Math.ceil(item.baseCost * Math.pow(1.15, item.count));
+        updateDisplay();
+        createShopButtons(); // ボタンを作り直す
+        checkUnlocks();
+        
+        // 買った瞬間、ツールチップを再表示して価格更新を反映させる
+        // （マウスがまだ乗っているはずなので）
+        const btn = document.getElementById("shop-btn-" + id);
+        if (btn) {
+             let stats = `Each produces: <strong>${formatNumber(item.gps)} CpS</strong><br>Owned: <strong>${item.count}</strong>`;
+             showTooltip(btn, t(item.name), "Produces cookies automatically.", stats, item.cost, cookies >= item.cost);
+        }
+
+        const sound = baseSound.cloneNode();
+        sound.playbackRate = 1.0 + (id * 0.1); 
+        sound.play().catch(() => {});
+    }
+}
+
+// --- スキルボタン作成（修正版） ---
 function createSkillButtons() {
     const container = document.getElementById('lab-container');
     if (!container) return;
@@ -292,33 +367,28 @@ function createSkillButtons() {
             const btn = document.createElement("div");
             btn.className = "skill-icon";
             
-            // ここにもツールチップのHTML（<div class="tooltip">）は含めません
-            btn.innerHTML = `<div style="font-size:30px;text-align:center;line-height:46px;">${skill.iconStr}</div>`;
+            btn.innerHTML = `<div style="font-size:30px;text-align:center;line-height:46px; pointer-events:none;">${skill.iconStr}</div>`;
             
             if (cookies >= skill.cost) btn.classList.add('affordable');
 
             // マウスイベント
-            btn.onmouseenter = function() {
-                if (typeof showTooltip === "function") {
-                    showTooltip(this, skill.name, skill.desc, "", skill.cost, cookies >= skill.cost);
-                }
-            };
-            btn.onmouseleave = function() {
-                if (typeof hideTooltip === "function") hideTooltip();
-            };
+            btn.addEventListener('mouseenter', function() {
+                showTooltip(this, skill.name, skill.desc, "Upgrade", skill.cost, cookies >= skill.cost);
+            });
+            btn.addEventListener('mouseleave', function() {
+                hideTooltip();
+            });
 
             btn.onclick = () => {
                 if (cookies >= skill.cost) {
                     cookies -= skill.cost;
                     skill.unlocked = true;
-                    // 音を鳴らす（もし設定してあれば）
                     if(typeof baseSound !== 'undefined'){
                         const sound = baseSound.cloneNode();
                         sound.playbackRate = 1.2;
                         sound.play().catch(()=>{});
                     }
-                    
-                    if (typeof hideTooltip === "function") hideTooltip();
+                    hideTooltip();
                     updateDisplay();
                     createSkillButtons();
                 }
@@ -503,7 +573,7 @@ function saveGame() {
         lifetimeCookies: lifetimeCookies,
         prestigeLevel: prestigeLevel,
         lastSaveTime: Date.now(),
-        items: items.map(i => ({ count: i.count, unlocked: i.unlocked })), // countとunlockedだけ保存
+        items: items.map(i => ({ count: i.count, unlocked: i.unlocked })), 
         skills: skills.map(s => ({ unlocked: s.unlocked })),
         achievements: achievements.map(a => ({ id: a.id, unlocked: a.unlocked })),
         heavenlyUpgrades: heavenlyUpgrades.map(h => ({ id: h.id, unlocked: h.unlocked })),
@@ -530,7 +600,6 @@ function loadGame() {
                 if (items[i]) {
                     items[i].count = saved.count;
                     items[i].unlocked = saved.unlocked;
-                    // 価格は再計算
                     items[i].cost = Math.ceil(items[i].baseCost * Math.pow(1.15, items[i].count));
                 }
             });
@@ -555,18 +624,13 @@ function loadGame() {
         changeTheme(data.theme || 'default');
         updateAchievementDisplay();
         
-        // オフラインボーナス
         if (data.lastSaveTime) {
             const now = Date.now();
             const secondsOffline = (now - data.lastSaveTime) / 1000;
             if (secondsOffline > 60) {
                 let gps = calculateGPS();
-                // 天界スキルh4でオフライン生産
                 let rate = isHeavenlyUnlocked("h4") ? 0.5 : 0; 
-                // ここではデバッグ用にh4持ってなくても少し入るようにしてもいいが、
-                // 一応条件通りにするなら rate = 0;
-                // 今回は「誰でも50%」のままにするなら rate = 0.5
-                rate = 0.5;
+                rate = 0.5; // Temporarily 50% for everyone
 
                 const offlineProduction = Math.floor(secondsOffline * gps * rate);
                 if (offlineProduction > 0) {
@@ -714,7 +778,7 @@ window.onload = function() {
     setInterval(() => {
         let gps = calculateGPS();
         if (gps > 0) addCookies(gps / 10);
-        updateDisplay(); // ここで定期更新を入れると滑らかになる
+        updateDisplay(); 
         checkAchievements();
     }, 100);
     
@@ -725,11 +789,15 @@ window.onload = function() {
 window.onbeforeunload = function() {
     saveGame();
 };
-// --- ツールチップ制御用関数 ---
+
+// ==========================================
+//  ★ツールチップ制御用関数（完全修復版）★
+// ==========================================
 
 // ツールチップを表示する関数
 function showTooltip(element, title, desc, statsHtml, price, canAfford) {
-    console.log("マウス反応あり！ツールチップを表示しようとしています！");
+    console.log("マウス反応あり！ツールチップを表示します！");
+    
     const tooltip = document.getElementById('global-tooltip');
     if (!tooltip) return;
 
@@ -739,26 +807,33 @@ function showTooltip(element, title, desc, statsHtml, price, canAfford) {
         <div class="tooltip-title">${title}</div>
         <div class="tooltip-desc">${desc}</div>
         <div class="tooltip-stat">${statsHtml}</div>
-        <div class="${priceColor}">Cost: ${formatNumber(price)}</div>
+        <div class="${priceColor}">Price: ${formatNumber(price)}</div>
     `;
 
-    // 位置を計算（ここが重要！）
+    // ★ここでツールチップを「表示」し「場所を決める」重要な処理★
+    tooltip.style.display = "block"; // 隠れていたものを表示
+
+    // 要素（ボタン）の位置を取得
     const rect = element.getBoundingClientRect();
+
+    // ボタンの「左側」に表示する場合（ショップが右にあるため）
+    // 画面からはみ出さないよう、ボタンの左端からツールチップの幅分ずらす
+    // 簡易的に「ボタンの左端 - 320px」くらいの位置に出す
+    let leftPos = rect.left - 320;
     
-    // 表示してサイズを計算させる
-    tooltip.style.display = 'block';
-    
-    // ボタンの「左側」に表示するように調整
-    // (画面の右端 - ボタンの左端 + 余白) をRightに設定
-    let rightPos = window.innerWidth - rect.left + 10; 
-    
-    tooltip.style.top = rect.top + 'px';
-    tooltip.style.right = rightPos + 'px';
-    tooltip.style.left = 'auto'; // 左指定は解除
+    // もし左にはみ出しそうなら、ボタンの右側に出す（レスポンシブ対応）
+    if (leftPos < 10) {
+        leftPos = rect.right + 10;
+    }
+
+    tooltip.style.left = leftPos + "px";
+    tooltip.style.top = rect.top + "px";
 }
 
 // ツールチップを隠す関数
 function hideTooltip() {
     const tooltip = document.getElementById('global-tooltip');
-    if (tooltip) tooltip.style.display = 'none';
+    if (tooltip) {
+        tooltip.style.display = "none";
+    }
 }
