@@ -210,14 +210,24 @@ function clickCookie(event) {
     totalClicks++;
 
     let clickPower = 1;
-    if (skills[0].unlocked) clickPower *= 2;
-    if (skills[1].unlocked) clickPower *= 2;
-    if (skills[3].unlocked && Math.random() < 0.1) clickPower *= 10;
+
+    // ★変更点：すべてのスキルを確認し、「クリック強化(target="Click")」なら2倍にする
+    skills.forEach(skill => {
+        if (skill.unlocked && skill.target === "Click") {
+            clickPower *= 2;
+        }
+    });
+
+    // ★変更点：ラッキークッキーは名前で探す（番号が変わっても大丈夫なように）
+    const luckySkill = skills.find(s => s.name === "Lucky Cookie");
+    if (luckySkill && luckySkill.unlocked && Math.random() < 0.1) {
+        clickPower *= 10;
+    }
 
     // ★天界ボーナス
     let prestigeMultiplier = 1 + (prestigeLevel * (isHeavenlyUnlocked("h1") ? 0.05 : 0.01));
     
-    // ★ここが重要：計算結果を一度変数「amount」に入れる
+    // 計算結果を一度変数「amount」に入れる
     let amount = clickPower * prestigeMultiplier * difficulty * buffMultiplier;
 
     addCookies(amount);
