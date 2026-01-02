@@ -998,3 +998,38 @@ updateShopUI();
 
 // 1秒ごとのループやクリック処理の中でも updateShopUI() を呼んで、
 // クッキーが増えるたびに「買える色」が変わるようにするとベストです。
+// ボタンの色と不透明度だけを高速に更新する関数
+function updateShopColors() {
+    items.forEach((item, index) => {
+        // ボタンを探す
+        const btn = document.getElementById('shop-btn-' + index);
+        if (!btn) return;
+
+        // 今のまとめ買い設定での価格を計算
+        // (getBulkCostがない場合は簡易計算)
+        let currentCost = 0;
+        if (typeof getBulkCost === 'function') {
+            currentCost = getBulkCost(item, buyAmount);
+        } else {
+            currentCost = Math.ceil(item.baseCost * Math.pow(1.15, item.count)) * buyAmount;
+        }
+
+        // 値段のテキストエリアを探す
+        const costElem = btn.querySelector('.item-cost');
+
+        // お金が足りるかチェックして見た目を変える
+        if (cookies >= currentCost) {
+            // 買えるとき：明るくする
+            btn.classList.add('affordable');
+            btn.classList.remove('locked');
+            btn.style.opacity = "1";
+            if (costElem) costElem.style.color = "#6f6"; // 緑色
+        } else {
+            // 足りないとき：暗くする
+            btn.classList.remove('affordable');
+            btn.classList.add('locked');
+            btn.style.opacity = "0.6";
+            if (costElem) costElem.style.color = "#f66"; // 赤色
+        }
+    });
+}
