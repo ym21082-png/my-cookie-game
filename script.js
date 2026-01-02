@@ -210,7 +210,7 @@ function updateDisplay() {
     }
 }
 
-// ショップボタン作成（詳細ツールチップ付き）
+// ショップボタン作成（修正版）
 function createShopButtons() {
     const container = document.getElementById('shop-container');
     if (!container) return;
@@ -219,7 +219,6 @@ function createShopButtons() {
     items.forEach((item, index) => {
         if (!item.unlocked) return;
         
-        // 割引計算
         let displayCost = item.cost;
         if (isHeavenlyUnlocked("h3")) displayCost = Math.floor(displayCost * 0.95);
 
@@ -229,10 +228,6 @@ function createShopButtons() {
         
         if (cookies >= displayCost) btn.classList.add('affordable');
         
-        // ツールチップの中身を作る
-        // item.gps は基本性能ですが、スキルで倍になっている可能性があるので計算し直すのがベスト
-        // 今回は簡易的に表示します
-        
         btn.innerHTML = `
             <div class="item-icon-placeholder" style="display:flex;justify-content:center;align-items:center;font-size:30px;">${item.iconStr}</div>
             <div class="item-info">
@@ -240,18 +235,20 @@ function createShopButtons() {
                 <div class="item-cost">${formatNumber(displayCost)}</div>
             </div>
             <div class="item-owned">${item.count}</div>
-
-            <div class="tooltip">
-                <div style="font-weight:bold; font-size:1.1em; margin-bottom:4px;">${t(item.name)}</div>
-                <div style="font-size:0.9em; color:#ccc; margin-bottom:8px;">Produces cookies automatically.</div>
-                <div>Each produces: <strong>${formatNumber(item.gps)} CpS</strong></div>
-                <div>You own: <strong>${item.count}</strong></div>
-                <div class="${cookies >= displayCost ? 'price' : 'price cant-afford'}">
-                    Cost: ${formatNumber(displayCost)}
-                </div>
-            </div>
         `;
-        btn.onclick = () => buyItem(index);
+
+        // ★ここが変わった：マウスイベントで関数を呼ぶ
+        btn.onmouseenter = function() {
+            let stats = `Each produces: <strong>${formatNumber(item.gps)} CpS</strong><br>Owned: <strong>${item.count}</strong>`;
+            showTooltip(this, t(item.name), "Produces cookies automatically.", stats, displayCost, cookies >= displayCost);
+        };
+        btn.onmouseleave = hideTooltip;
+
+        btn.onclick = () => {
+            buyItem(index);
+            // 買った直後にツールチップの値段色などを更新するために一度隠す（あるいは再描画してもよい）
+            hideTooltip(); 
+        };
         container.appendChild(btn);
     });
 }
@@ -275,7 +272,7 @@ function buyItem(id) {
     }
 }
 
-// スキルボタン作成（詳細ツールチップ付き）
+// スキルボタン作成（修正版）
 function createSkillButtons() {
     const container = document.getElementById('lab-container');
     if (!container) return;
@@ -284,33 +281,24 @@ function createSkillButtons() {
         if (!skill.unlocked && skill.trigger()) {
             const btn = document.createElement("div");
             btn.className = "skill-icon";
-            // スキルアイコン
+            if (cookies >= skill.cost) btn.classList.add('affordable');
+
             btn.innerHTML = `<div style="font-size:30px;text-align:center;line-height:46px;">${skill.iconStr}</div>`;
             
-            // 色判定
-            let colorClass = cookies >= skill.cost ? 'price' : 'price cant-afford';
+            // ★ここが変わった：マウスイベント
+            btn.onmouseenter = function() {
+                showTooltip(this, skill.name, skill.desc, "", skill.cost, cookies >= skill.cost);
+            };
+            btn.onmouseleave = hideTooltip;
 
-            // ★詳細情報のポップアップ
-            const tooltip = document.createElement("div");
-            tooltip.className = "tooltip";
-            tooltip.innerHTML = `
-                <div style="font-weight:bold; margin-bottom:5px; color:#ffcc00;">${skill.name}</div>
-                <div style="font-size:0.9em; margin-bottom:5px;">${skill.desc}</div>
-                <div class="${colorClass}">Price: ${formatNumber(skill.cost)}</div>
-            `;
-            btn.appendChild(tooltip);
-            
-            if (cookies >= skill.cost) btn.classList.add('affordable');
             btn.onclick = () => {
                 if (cookies >= skill.cost) {
                     cookies -= skill.cost;
                     skill.unlocked = true;
-                    
-                    // 音を鳴らす
                     const sound = baseSound.cloneNode();
                     sound.playbackRate = 1.2;
                     sound.play().catch(()=>{});
-
+                    hideTooltip(); // 買ったら隠す
                     updateDisplay();
                     createSkillButtons();
                 }
@@ -717,3 +705,39 @@ window.onload = function() {
 window.onbeforeunload = function() {
     saveGame();
 };
+// --- ツールチップ制御用関数 ---
+
+// ツールチップを表示する関数
+function showTooltip(element, title, desc, statsHtml, price, canAfford) {
+    const tooltip = document.getElementById('global-tooltip');
+    if (!tooltip) return;
+
+    // 中身をセット
+    let priceColor = canAfford ? "tooltip-price" : "tooltip-price cant-afford";
+    tooltip.innerHTML = `
+        <div class="tooltip-title">${title}</div>
+        <div class="tooltip-desc">${desc}</div>
+        <div class="tooltip-stat">${statsHtml}</div>
+        <div class="${priceColor}">Cost: ${formatNumber(price)}</div>
+    `;
+
+    // 位置を計算（ここが重要！）
+    const rect = element.getBoundingClientRect();
+    
+    // 表示してサイズを計算させる
+    tooltip.style.display = 'block';
+    
+    // ボタンの「左側」に表示するように調整
+    // (画面の右端 - ボタンの左端 + 余白) をRightに設定
+    let rightPos = window.innerWidth - rect.left + 10; 
+    
+    tooltip.style.top = rect.top + 'px';
+    tooltip.style.right = rightPos + 'px';
+    tooltip.style.left = 'auto'; // 左指定は解除
+}
+
+// ツールチップを隠す関数
+function hideTooltip() {
+    const tooltip = document.getElementById('global-tooltip');
+    if (tooltip) tooltip.style.display = 'none';
+}
