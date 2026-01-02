@@ -301,7 +301,25 @@ function createShopButtons() {
         container.appendChild(btn);
     });
 }
-
+// ▼▼▼ 新しく追加する関数：まとめ買いの価格計算 ▼▼▼
+function getBulkCost(item, amount) {
+    let sum = 0;
+    let tempCount = item.count; // 現在の所持数から計算スタート
+    
+    for (let i = 0; i < amount; i++) {
+        // 基本価格 * 1.15の(所持数)乗
+        let price = Math.ceil(item.baseCost * Math.pow(1.15, tempCount));
+        
+        // 天界アップグレード "Divine Discount" (ID: h3) を持っていたら割引
+        if (typeof isHeavenlyUnlocked === "function" && isHeavenlyUnlocked("h3")) {
+            price = Math.floor(price * 0.95);
+        }
+        
+        sum += price;
+        tempCount++; // 次の1個はもっと高くなる
+    }
+    return sum;
+}
 function buyItem(id) {
     const item = items[id];
     let currentCost = item.cost;
@@ -321,78 +339,101 @@ function buyItem(id) {
     }
 }
 
-// --- ショップボタン作成（修正版） ---
+// --- ショップボタン作成（まとめ買い対応版） ---
 function createShopButtons() {
     const container = document.getElementById('shop-container');
     if (!container) return;
     container.innerHTML = ""; // 一度空っぽにする
     
     items.forEach((item, index) => {
+        // まだ解禁されていないアイテムは表示しない
         if (!item.unlocked) return;
         
-        let displayCost = item.cost;
-        if (isHeavenlyUnlocked("h3")) displayCost = Math.floor(displayCost * 0.95);
+        // ★ここが変更点：まとめ買い個数分の価格を計算
+        let displayCost = getBulkCost(item, buyAmount);
 
         const btn = document.createElement("div");
         btn.className = "store-item";
         btn.id = "shop-btn-" + index;
         
+        // お金が足りるかチェック
         if (cookies >= displayCost) btn.classList.add('affordable');
+        else btn.classList.add('locked'); // 足りない時はlockedクラスをつける（CSSで少し暗くすると良い）
         
         // ボタンの中身（HTML）
         btn.innerHTML = `
             <div class="item-icon-placeholder" style="display:flex;justify-content:center;align-items:center;font-size:30px; pointer-events:none;">${item.iconStr}</div>
             <div class="item-info" style="pointer-events:none;">
                 <div class="item-name">${t(item.name)}</div>
-                <div class="item-cost">${formatNumber(displayCost)}</div>
+                <div class="item-cost" style="color: ${cookies >= displayCost ? '#6f6' : '#f66'}">
+                    💎 ${formatNumber(displayCost)}
+                </div>
             </div>
             <div class="item-owned" style="pointer-events:none;">${item.count}</div>
         `;
 
-        // ★マウスイベント：確実に反応するように addEventListener を使用
+        // マウスイベント：ツールチップ表示
         btn.addEventListener('mouseenter', function() {
-            let stats = `Each produces: <strong>${formatNumber(item.gps)} CpS</strong><br>Owned: <strong>${item.count}</strong>`;
+            // 1個あたりの生産量 × まとめて買う個数
+            let totalGps = item.gps * buyAmount;
             
-            // ツールチップを表示する関数を呼ぶ
-            showTooltip(this, t(item.name), "Produces cookies automatically.", stats, displayCost, cookies >= displayCost);
+            let stats = `Buy <strong>${buyAmount}x</strong><br>
+                         Each produces: <strong>${formatNumber(item.gps)} CpS</strong><br>
+                         Total added: <strong>${formatNumber(totalGps)} CpS</strong><br>
+                         Owned: <strong>${item.count}</strong>`;
+            
+            // ツールチップを表示
+            if (typeof showTooltip === "function") {
+                showTooltip(this, t(item.name), "Produces cookies automatically.", stats, displayCost, cookies >= displayCost);
+            }
         });
 
         btn.addEventListener('mouseleave', function() {
-            hideTooltip();
+            if (typeof hideTooltip === "function") hideTooltip();
         });
 
+        // クリック時の動作
         btn.onclick = () => {
             buyItem(index);
-            hideTooltip(); // 買った瞬間はいったん隠す
+            // 買った直後はツールチップを一旦消す（または再計算して表示し直すのもアリ）
+            if (typeof hideTooltip === "function") hideTooltip();
         };
+        
         container.appendChild(btn);
     });
 }
 
+// --- アイテム購入関数（まとめ買い対応版） ---
 function buyItem(id) {
     const item = items[id];
-    let currentCost = item.cost;
-    if (isHeavenlyUnlocked("h3")) currentCost = Math.floor(currentCost * 0.95);
+    
+    // ★変更点：まとめ買い価格を計算
+    let currentCost = getBulkCost(item, buyAmount);
 
+    // お金が足りるかチェック
     if (cookies >= currentCost) {
+        // お金を払う
         cookies -= currentCost;
-        item.count++;
+
+        // ★変更点：指定個数分、アイテムを増やして価格を更新する
+        for(let i = 0; i < buyAmount; i++) {
+            item.count++;
+        }
+        
+        // 次回の1個買いの価格を更新（計算式は元のまま）
         item.cost = Math.ceil(item.baseCost * Math.pow(1.15, item.count));
+
+        // 画面更新
         updateDisplay();
         createShopButtons(); // ボタンを作り直す
-        checkUnlocks();
+        checkUnlocks();      // 新しいアイテムの解禁チェック
         
-        // 買った瞬間、ツールチップを再表示して価格更新を反映させる
-        // （マウスがまだ乗っているはずなので）
-        const btn = document.getElementById("shop-btn-" + id);
-        if (btn) {
-             let stats = `Each produces: <strong>${formatNumber(item.gps)} CpS</strong><br>Owned: <strong>${item.count}</strong>`;
-             showTooltip(btn, t(item.name), "Produces cookies automatically.", stats, item.cost, cookies >= item.cost);
+        // 音を鳴らす
+        if (typeof baseSound !== 'undefined') {
+            const sound = baseSound.cloneNode();
+            sound.playbackRate = 1.0 + (id * 0.1); 
+            sound.play().catch(() => {});
         }
-
-        const sound = baseSound.cloneNode();
-        sound.playbackRate = 1.0 + (id * 0.1); 
-        sound.play().catch(() => {});
     }
 }
 
