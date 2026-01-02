@@ -210,7 +210,7 @@ function updateDisplay() {
     }
 }
 
-// --- ショップボタン作成（完全に新しいバージョン） ---
+// --- ショップボタン作成（クリーン版） ---
 function createShopButtons() {
     const container = document.getElementById('shop-container');
     if (!container) return;
@@ -228,7 +228,9 @@ function createShopButtons() {
         
         if (cookies >= displayCost) btn.classList.add('affordable');
         
-        // ★ここがポイント：以前あった「tooltip」というdivはここには書きません！
+        // ★ここが修正ポイント！
+        // さっきまではここに <div class="tooltip">...</div> という記述がありましたが
+        // それを完全に削除しました。これでもう黒い帯は出ません。
         btn.innerHTML = `
             <div class="item-icon-placeholder" style="display:flex;justify-content:center;align-items:center;font-size:30px;">${item.iconStr}</div>
             <div class="item-info">
@@ -241,7 +243,7 @@ function createShopButtons() {
         // マウスを乗せたときに、外にある「global-tooltip」を呼び出す
         btn.onmouseenter = function() {
             let stats = `Each produces: <strong>${formatNumber(item.gps)} CpS</strong><br>Owned: <strong>${item.count}</strong>`;
-            // showTooltip関数が正しく定義されている必要があります
+            // showTooltip関数がある場合のみ実行
             if (typeof showTooltip === "function") {
                 showTooltip(this, t(item.name), "Produces cookies automatically.", stats, displayCost, cookies >= displayCost);
             }
@@ -279,33 +281,43 @@ function buyItem(id) {
     }
 }
 
-// スキルボタン作成（修正版）
+// --- スキルボタン作成（クリーン版） ---
 function createSkillButtons() {
     const container = document.getElementById('lab-container');
     if (!container) return;
     container.innerHTML = "";
+    
     skills.forEach((skill) => {
         if (!skill.unlocked && skill.trigger()) {
             const btn = document.createElement("div");
             btn.className = "skill-icon";
-            if (cookies >= skill.cost) btn.classList.add('affordable');
-
+            // ここにもツールチップのHTMLは含めない
             btn.innerHTML = `<div style="font-size:30px;text-align:center;line-height:46px;">${skill.iconStr}</div>`;
             
-            // ★ここが変わった：マウスイベント
+            if (cookies >= skill.cost) btn.classList.add('affordable');
+
+            // マウスイベント
             btn.onmouseenter = function() {
-                showTooltip(this, skill.name, skill.desc, "", skill.cost, cookies >= skill.cost);
+                if (typeof showTooltip === "function") {
+                    showTooltip(this, skill.name, skill.desc, "", skill.cost, cookies >= skill.cost);
+                }
             };
-            btn.onmouseleave = hideTooltip;
+            btn.onmouseleave = function() {
+                if (typeof hideTooltip === "function") hideTooltip();
+            };
 
             btn.onclick = () => {
                 if (cookies >= skill.cost) {
                     cookies -= skill.cost;
                     skill.unlocked = true;
-                    const sound = baseSound.cloneNode();
-                    sound.playbackRate = 1.2;
-                    sound.play().catch(()=>{});
-                    hideTooltip(); // 買ったら隠す
+                    // 音を鳴らす（もし設定してあれば）
+                    if(typeof baseSound !== 'undefined'){
+                        const sound = baseSound.cloneNode();
+                        sound.playbackRate = 1.2;
+                        sound.play().catch(()=>{});
+                    }
+                    
+                    if (typeof hideTooltip === "function") hideTooltip();
                     updateDisplay();
                     createSkillButtons();
                 }
