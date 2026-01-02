@@ -1,73 +1,18 @@
 // ==========================================
-//  クッキークリッカー改 天界機能付き (v8.0)
+//  クッキークリッカー改 天界機能付き (v8.1 Fix)
 // ==========================================
+
 // ==========================================
 //  翻訳データ (日本語 / 英語)
 // ==========================================
 let currentLang = 'en'; // 初期値
-// --- 実績（トロフィー）データ ---
-const achievements = [
-    { id: "a1", name: "Humble Beginnings", desc: "Bake 100 cookies.", icon: "🍪", unlocked: false, trigger: () => totalCookies >= 100 },
-    { id: "a2", name: "Fingertastic", desc: "Click 1,000 times.", icon: "👆", unlocked: false, trigger: () => totalClicks >= 1000 },
-    { id: "a3", name: "Grandma's Love", desc: "Own 10 Grandmas.", icon: "👵", unlocked: false, trigger: () => items[1].count >= 10 },
-    { id: "a4", name: "Millionaire", desc: "Bake 1,000,000 cookies.", icon: "💰", unlocked: false, trigger: () => totalCookies >= 1000000 },
-    { id: "a5", name: "Ascension", desc: "Prestige for the first time.", icon: "👼", unlocked: false, trigger: () => prestigeLevel > 0 }
-];
 
-// 実績チェック関数
-function checkAchievements() {
-    achievements.forEach(ach => {
-        if (!ach.unlocked && ach.trigger()) {
-            ach.unlocked = true;
-            showAchievementNotification(ach); // 通知を出す
-            updateAchievementDisplay(); // リスト表示を更新
-        }
-    });
-}
-function showAchievementNotification(ach) {
-    const notif = document.getElementById('achievement-notification');
-    document.getElementById('ach-title').innerText = "🏆 Achievement Unlocked!";
-    document.getElementById('ach-desc').innerText = ach.name;
-    
-    // 音を鳴らす（既存の音を流用、少し音程を変える）
-    const sound = baseSound.cloneNode();
-    sound.playbackRate = 0.5; 
-    sound.play().catch(() => {});
-
-    // 表示クラスをつけてスライドイン
-    notif.classList.add('show');
-
-    // 4秒後に隠す
-    setTimeout(() => {
-        notif.classList.remove('show');
-    }, 4000);
-}
-
-function updateAchievementDisplay() {
-    const container = document.getElementById('achievement-container');
-    if (!container) return;
-    container.innerHTML = "";
-    
-    achievements.forEach(ach => {
-        const div = document.createElement("div");
-        div.className = "achievement-list-item" + (ach.unlocked ? " unlocked" : "");
-        div.innerHTML = `
-            <div style="font-size:24px;">${ach.unlocked ? ach.icon : "❓"}</div>
-            <div>
-                <div style="font-weight:bold; font-size:12px;">${ach.unlocked ? ach.name : "???"}</div>
-                <div style="font-size:10px;">${ach.unlocked ? ach.desc : "Keep playing..."}</div>
-            </div>
-        `;
-        container.appendChild(div);
-    });
-}
 const translations = {
     ja: {
         score: "クッキー",
         perSecond: "毎秒:",
         storeTitle: "ショップ",
         labTitle: "研究所",
-        // アイテム名
         "Cursor": "カーソル",
         "Grandma": "おばあちゃん",
         "Farm": "農場",
@@ -78,39 +23,48 @@ const translations = {
         "Wizard Tower": "魔法の塔",
         "Shipment": "ロケット便",
         "Alchemy Lab": "錬金術ラボ",
-        "Portal": "ポータル",
-        // スキル名（一部例）
-        "Reinforced Index": "強化人差し指",
-        "Carpal Tunnel": "手根管症候群",
-        "Forwards from grandma": "おばあちゃんの支援",
-        "Lucky Cookie": "ラッキークッキー"
+        "Portal": "ポータル"
     },
     en: {
         score: "Cookies",
         perSecond: "per second:",
         storeTitle: "Store",
         labTitle: "Laboratory",
-        // 英語はそのまま返すので空でも良いが、念のため
         "Cursor": "Cursor",
         "Grandma": "Grandma"
-        // ...他はキーと同じなら省略可能
     }
 };
 
-// 翻訳ヘルパー関数
 function t(key) {
-    if (currentLang === 'en') return key; // 英語ならそのまま
-    return translations.ja[key] || key;   // 日本語辞書になければそのまま
+    if (currentLang === 'en') return key;
+    return translations.ja[key] || key;
 }
 
+// ==========================================
+//  基本データ定義
+// ==========================================
 let cookies = 0;
-let totalCookies = 0; // 今回の人生の累計
-let prestigeLevel = 0; // 所持している天界チップ（通貨）
-let lifetimeCookies = 0; // 全人生の累計（統計用）
-let buffMultiplier = 1; // バフ倍率（通常は1、確変中は7になる）
+let totalCookies = 0;
+let prestigeLevel = 0;
+let lifetimeCookies = 0;
+let buffMultiplier = 1;
+let difficulty = 1.0;
+let difficultyName = "normal";
+let currentTheme = "default";
+let totalClicks = 0;
+let startTime = Date.now();
+const baseSound = new Audio('click.mp3'); // 音源ファイルが必要
 
-// ★天界アップグレードのデータ
-// id: 識別子, name: 名前, cost: 価格, desc: 説明, icon: 絵文字
+// --- 実績（トロフィー）データ ---
+const achievements = [
+    { id: "a1", name: "Humble Beginnings", desc: "Bake 100 cookies.", icon: "🍪", unlocked: false, trigger: () => totalCookies >= 100 },
+    { id: "a2", name: "Fingertastic", desc: "Click 1,000 times.", icon: "👆", unlocked: false, trigger: () => totalClicks >= 1000 },
+    { id: "a3", name: "Grandma's Love", desc: "Own 10 Grandmas.", icon: "👵", unlocked: false, trigger: () => items[1].count >= 10 },
+    { id: "a4", name: "Millionaire", desc: "Bake 1,000,000 cookies.", icon: "💰", unlocked: false, trigger: () => totalCookies >= 1000000 },
+    { id: "a5", name: "Ascension", desc: "Prestige for the first time.", icon: "👼", unlocked: false, trigger: () => prestigeLevel > 0 }
+];
+
+// --- 天界アップグレード ---
 const heavenlyUpgrades = [
     { id: "h1", name: "Heavenly Chip Secret", cost: 10, desc: "Unlocks 5% CpS bonus per chip potential.", icon: "👼", unlocked: false },
     { id: "h2", name: "Persistent Memory", cost: 100, desc: "Research is 5x faster in next life.", icon: "🧠", unlocked: false },
@@ -119,35 +73,7 @@ const heavenlyUpgrades = [
     { id: "h5", name: "Angelic Luck", cost: 5000, desc: "Golden cookies appear 2x more often.", icon: "🍀", unlocked: false }
 ];
 
-let difficulty = 1.0;
-let difficultyName = "normal";
-let currentTheme = "default";
-let totalClicks = 0;
-let startTime = Date.now();
-
-// --- ヘルパー関数 ---
-function formatNumber(num) {
-    if (num < 1000000) return Math.floor(num).toLocaleString();
-    const definitions = [
-        { val: 1e6, suffix: ' million' }, { val: 1e9, suffix: ' billion' },
-        { val: 1e12, suffix: ' trillion' }, { val: 1e15, suffix: ' quadrillion' }
-    ];
-    for (let i = definitions.length - 1; i >= 0; i--) {
-        if (num >= definitions[i].val) return (num / definitions[i].val).toFixed(3) + definitions[i].suffix;
-    }
-    return num.toExponential(3);
-}
-
-function formatTime(ms) {
-    let seconds = Math.floor(ms / 1000);
-    let h = Math.floor(seconds / 3600);
-    let m = Math.floor((seconds % 3600) / 60);
-    let s = seconds % 60;
-    return `${h.toString().padStart(2, '0')}:${m.toString().padStart(2, '0')}:${s.toString().padStart(2, '0')}`;
-}
-
-// --- アイテム & スキルデータ ---
-// ★ baseCost を追加して、価格計算が狂わないようにしました
+// --- アイテムデータ ---
 let items = [
     { name: "Cursor", cost: 15, baseCost: 15, gps: 0.1, count: 0, unlocked: true, trigger: () => true, iconStr: "👆" },
     { name: "Grandma", cost: 100, baseCost: 100, gps: 1, count: 0, unlocked: false, trigger: () => items[0].count >= 1, iconStr: "👵" },
@@ -162,47 +88,41 @@ let items = [
     { name: "Portal", cost: 1000000000000, baseCost: 1000000000000, gps: 10000000, count: 0, unlocked: false, trigger: () => items[9].count >= 1, iconStr: "🌀" }
 ];
 
+// --- スキルデータ (修正済み) ---
 let skills = [
-    { name: "Reinforced Index", cost: 100, desc: "Clicking is 2x as efficient.", unlocked: false, trigger: () => items[0].count >= 1, iconStr: "👆" },
-    { name: "Carpal Tunnel", cost: 500, desc: "Clicking is 2x as efficient.", unlocked: false, trigger: () => items[0].count >= 10, iconStr: "👆" },
-    { name: "Forwards from grandma", cost: 1000, desc: "Grandmas are 2x as efficient.", unlocked: false, trigger: () => items[1].count >= 1, iconStr: "👵" },
-    { name: "Lucky Cookie", cost: 77777, desc: "Clicks have a 10% chance to be x10.", unlocked: false, trigger: () => totalCookies >= 7777, iconStr: "🍀" }
-    // 農場 (Farm) 用
+    { name: "Reinforced Index", cost: 100, desc: "Clicking is 2x as efficient.", unlocked: false, trigger: () => items[0].count >= 1, iconStr: "👆", target: "Click" },
+    { name: "Carpal Tunnel", cost: 500, desc: "Clicking is 2x as efficient.", unlocked: false, trigger: () => items[0].count >= 10, iconStr: "👆", target: "Click" },
+    { name: "Forwards from grandma", cost: 1000, desc: "Grandmas are 2x as efficient.", unlocked: false, trigger: () => items[1].count >= 1, iconStr: "👵", target: "Grandma" },
+    { name: "Lucky Cookie", cost: 77777, desc: "Clicks have a 10% chance to be x10.", unlocked: false, trigger: () => totalCookies >= 7777, iconStr: "🍀", target: "Special" },
+    
+    // ▼ ここでカンマが抜けていました。修正済み ▼
     { name: "Cheap Hoes", cost: 11000, desc: "Farms are 2x as efficient.", unlocked: false, trigger: () => items[2].count >= 10, iconStr: "🌾", target: "Farm" },
     { name: "Fertilizer", cost: 55000, desc: "Farms are 2x as efficient.", unlocked: false, trigger: () => items[2].count >= 50, iconStr: "💩", target: "Farm" },
-
-    // 鉱山 (Mine) 用
     { name: "Sugar Gas", cost: 120000, desc: "Mines are 2x as efficient.", unlocked: false, trigger: () => items[3].count >= 10, iconStr: "⛏️", target: "Mine" },
     { name: "Megadrill", cost: 600000, desc: "Mines are 2x as efficient.", unlocked: false, trigger: () => items[3].count >= 50, iconStr: "🔩", target: "Mine" },
-
-    // 工場 (Factory) 用
     { name: "Sturdier Conveyor Belts", cost: 1300000, desc: "Factories are 2x as efficient.", unlocked: false, trigger: () => items[4].count >= 10, iconStr: "🏭", target: "Factory" },
-
-    // 銀行 (Bank) 用
     { name: "Gold Bullion", cost: 14000000, desc: "Banks are 2x as efficient.", unlocked: false, trigger: () => items[5].count >= 10, iconStr: "🏦", target: "Bank" },
-
-    // 寺院 (Temple) 用
     { name: "Golden Idols", cost: 200000000, desc: "Temples are 2x as efficient.", unlocked: false, trigger: () => items[6].count >= 10, iconStr: "🏛️", target: "Temple" },
-
-    // 魔法の塔 (Wizard Tower) 用
     { name: "Grimoires", cost: 3300000000, desc: "Wizard Towers are 2x as efficient.", unlocked: false, trigger: () => items[7].count >= 10, iconStr: "🧙‍♂️", target: "Wizard Tower" },
-
-    // ロケット (Shipment) 用
     { name: "Vanilla Planet", cost: 51000000000, desc: "Shipments are 2x as efficient.", unlocked: false, trigger: () => items[8].count >= 10, iconStr: "🚀", target: "Shipment" },
-
-    // 錬金術 (Alchemy Lab) 用
     { name: "Antimony", cost: 750000000000, desc: "Alchemy Labs are 2x as efficient.", unlocked: false, trigger: () => items[9].count >= 10, iconStr: "⚗️", target: "Alchemy Lab" },
-    
-    // ポータル (Portal) 用
     { name: "Ancient Tablet", cost: 10000000000000, desc: "Portals are 2x as efficient.", unlocked: false, trigger: () => items[10] && items[10].count >= 10, iconStr: "🌀", target: "Portal" }
 ];
-];
 
-const baseSound = new Audio('click.mp3');
+// ==========================================
+//  コアゲーム機能
+// ==========================================
 
-// --- ゲームロジック ---
+// クッキーを追加する基本関数（これが消えていました！）
+function addCookies(n) {
+    cookies += n;
+    totalCookies += n;
+    lifetimeCookies += n;
+    // ここで表示更新すると重くなるので、メインループでの更新に任せるか、
+    // 数字が飛ぶ演出の時だけ呼ぶようにします。
+    // 今回は整合性のため変数操作だけにします。
+}
 
-// 引数 (event) を受け取るように変更！
 function clickCookie(event) {
     const sound = baseSound.cloneNode();
     sound.playbackRate = 0.8 + (Math.random() * 0.4);
@@ -211,100 +131,71 @@ function clickCookie(event) {
 
     let clickPower = 1;
 
-    // ★変更点：すべてのスキルを確認し、「クリック強化(target="Click")」なら2倍にする
+    // スキル適用 (target: "Click")
     skills.forEach(skill => {
         if (skill.unlocked && skill.target === "Click") {
             clickPower *= 2;
         }
     });
 
-    // ★変更点：ラッキークッキーは名前で探す（番号が変わっても大丈夫なように）
+    // Lucky Cookie
     const luckySkill = skills.find(s => s.name === "Lucky Cookie");
     if (luckySkill && luckySkill.unlocked && Math.random() < 0.1) {
         clickPower *= 10;
     }
 
-    // ★天界ボーナス
+    // 天界ボーナス
     let prestigeMultiplier = 1 + (prestigeLevel * (isHeavenlyUnlocked("h1") ? 0.05 : 0.01));
     
-    // 計算結果を一度変数「amount」に入れる
     let amount = clickPower * prestigeMultiplier * difficulty * buffMultiplier;
 
     addCookies(amount);
+    updateDisplay(); // クリック時は即座に反映
 
-    // ★クリック演出：数字を浮かび上がらせる
     if (event) {
-        // formatNumberを使って「+10」のように表示
         createFloatingText(event.clientX, event.clientY, "+" + formatNumber(amount));
     }
 }
-// 数字を画面に浮かび上がらせる専用の関数
-function createFloatingText(x, y, text) {
-    const el = document.createElement('div');
-    el.className = 'click-visual'; // CSSで動きを設定したクラス
-    el.innerText = text;
-    
-    // クリックした場所(x,y)に配置（少しランダムにずらす）
-    el.style.left = (x - 20 + Math.random() * 40) + 'px'; 
-    el.style.top = (y - 20) + 'px';
-    
-    document.body.appendChild(el);
 
-    // 1秒後に要素を消して掃除する
-    setTimeout(() => {
-        el.remove();
-    }, 1000);
-}
 function calculateGPS() {
     let totalGps = 0;
-
     items.forEach(item => {
         let production = item.gps * item.count;
-        
-        // ★改良点：すべてのスキルをチェックして、この建物(item)用の強化があるか探す
+        // スキル適用 (targetが建物名と一致するもの)
         skills.forEach(skill => {
             if (skill.unlocked && skill.target === item.name) {
-                production *= 2; // 対象のスキルを持っていれば2倍！
+                production *= 2;
             }
         });
-
         totalGps += production;
     });
 
-    // 天界ボーナス
     let prestigeMultiplier = 1 + (prestigeLevel * (isHeavenlyUnlocked("h1") ? 0.05 : 0.01));
-
     return totalGps * prestigeMultiplier * difficulty * buffMultiplier;
 }
 
-function calculateGPS() {
-    let totalGps = 0;
-    items.forEach(item => {
-        let production = item.gps * item.count;
-        if (item.name === "Grandma" && skills[2].unlocked) production *= 2;
-        totalGps += production;
-    });
-
-    // ★天界ボーナス
-    let prestigeMultiplier = 1 + (prestigeLevel * (isHeavenlyUnlocked("h1") ? 0.05 : 0.01));
-
-    return totalGps * prestigeMultiplier * difficulty * buffMultiplier;
-}
-
-// ヘルパー：天界スキルを持ってるか確認
 function isHeavenlyUnlocked(id) {
     const upgrade = heavenlyUpgrades.find(u => u.id === id);
     return upgrade ? upgrade.unlocked : false;
 }
 
+// ==========================================
+//  表示・UI関連
+// ==========================================
+
 function updateDisplay() {
     document.getElementById('score').innerText = formatNumber(cookies);
     document.getElementById('cps').innerText = formatNumber(calculateGPS());
     
-    document.getElementById('prestige-chips').innerText = formatNumber(prestigeLevel);
-    // 次の転生でもらえるチップ計算
-    let pending = Math.floor(totalCookies / 1000000);
-    document.getElementById('pending-chips').innerText = formatNumber(pending);
+    // 天界チップ表示
+    const pChips = document.getElementById('prestige-chips');
+    if(pChips) pChips.innerText = formatNumber(prestigeLevel);
+    
+    const pendChips = document.getElementById('pending-chips');
+    if(pendChips) {
+        let pending = Math.floor(totalCookies / 1000000);
+        pendChips.innerText = formatNumber(pending);
+    }
     
     document.title = formatNumber(cookies) + " cookies";
 
@@ -317,20 +208,86 @@ function updateDisplay() {
         document.getElementById('stat-buildings').innerText = totalBuildings.toLocaleString();
         document.getElementById('stat-time').innerText = formatTime(Date.now() - startTime);
     }
+}
 
-    // ストア更新
-    items.forEach((item, i) => {
+function createShopButtons() {
+    const container = document.getElementById('shop-container');
+    if (!container) return;
+    container.innerHTML = "";
+    
+    items.forEach((item, index) => {
         if (!item.unlocked) return;
-        const btn = document.getElementById("shop-btn-" + i);
-        if (btn) {
-            let cost = item.cost;
-            // ★天界ボーナス（建物割引）
-            if (isHeavenlyUnlocked("h3")) cost = Math.floor(cost * 0.95);
+        
+        let displayCost = item.cost;
+        if (isHeavenlyUnlocked("h3")) displayCost = Math.floor(displayCost * 0.95);
 
-            btn.querySelector('.item-cost').innerText = formatNumber(cost);
-            btn.querySelector('.item-owned').innerText = item.count;
-            if (cookies >= cost) btn.classList.add('affordable');
-            else btn.classList.remove('affordable');
+        const btn = document.createElement("div");
+        btn.className = "store-item";
+        btn.id = "shop-btn-" + index;
+        
+        if (cookies >= displayCost) btn.classList.add('affordable');
+        
+        btn.innerHTML = `
+            <div class="item-icon-placeholder" style="display:flex;justify-content:center;align-items:center;font-size:30px;">${item.iconStr}</div>
+            <div class="item-info">
+                <div class="item-name">${t(item.name)}</div>
+                <div class="item-cost">${formatNumber(displayCost)}</div>
+            </div>
+            <div class="item-owned">${item.count}</div>
+        `;
+        btn.onclick = () => buyItem(index);
+        container.appendChild(btn);
+    });
+}
+
+function buyItem(id) {
+    const item = items[id];
+    let currentCost = item.cost;
+    if (isHeavenlyUnlocked("h3")) currentCost = Math.floor(currentCost * 0.95);
+
+    if (cookies >= currentCost) {
+        cookies -= currentCost;
+        item.count++;
+        item.cost = Math.ceil(item.baseCost * Math.pow(1.15, item.count));
+        updateDisplay();
+        createShopButtons();
+        checkUnlocks();
+        
+        const sound = baseSound.cloneNode();
+        sound.playbackRate = 1.0 + (id * 0.1); 
+        sound.play().catch(() => {});
+    }
+}
+
+function createSkillButtons() {
+    const container = document.getElementById('lab-container');
+    if (!container) return;
+    container.innerHTML = "";
+    skills.forEach((skill) => {
+        if (!skill.unlocked && skill.trigger()) {
+            const btn = document.createElement("div");
+            btn.className = "skill-icon";
+            btn.innerHTML = `<div style="font-size:30px;text-align:center;line-height:46px;">${skill.iconStr}</div>`;
+            
+            const tooltip = document.createElement("div");
+            tooltip.className = "tooltip";
+            tooltip.innerHTML = `
+                <div style="font-weight:bold;margin-bottom:5px;">${skill.name}</div>
+                <div style="font-size:0.9em;margin-bottom:5px;">${skill.desc}</div>
+                <div style="color:${cookies >= skill.cost ? '#66cdaa' : '#f44336'};font-weight:bold;">Price: ${formatNumber(skill.cost)}</div>
+            `;
+            btn.appendChild(tooltip);
+            
+            if (cookies >= skill.cost) btn.classList.add('affordable');
+            btn.onclick = () => {
+                if (cookies >= skill.cost) {
+                    cookies -= skill.cost;
+                    skill.unlocked = true;
+                    updateDisplay();
+                    createSkillButtons();
+                }
+            };
+            container.appendChild(btn);
         }
     });
 }
@@ -349,47 +306,28 @@ function checkUnlocks() {
     }
 }
 
-// --- システム設定 ---
-function setMode(mode) {
-    document.querySelectorAll('.mode-btn').forEach(btn => btn.classList.remove('active'));
-    if (mode === 'easy') { difficulty = 2.0; difficultyName = "Easy"; document.getElementById('mode-easy').classList.add('active'); }
-    else if (mode === 'normal') { difficulty = 1.0; difficultyName = "Normal"; document.getElementById('mode-normal').classList.add('active'); }
-    else if (mode === 'hard') { difficulty = 0.5; difficultyName = "Hard"; document.getElementById('mode-hard').classList.add('active'); }
-    else if (mode === 'veryhard') { difficulty = 0.2; difficultyName = "V.Hard"; document.getElementById('mode-veryhard').classList.add('active'); }
-    document.getElementById('current-mode-name').innerText = difficultyName;
-}
-function changeTheme(themeName) {
-    currentTheme = themeName;
-    document.body.className = ""; 
-    document.body.classList.add(themeName);
-}
+// ==========================================
+//  天界・転生システム
+// ==========================================
 
-// --- ★天界・転生システム ---
-
-// 1. 転生ボタンを押したとき
 function prestige() {
     let pending = Math.floor(totalCookies / 1000000);
     if (pending <= 0) { alert("You need at least 1 million cookies baked this run to ascend!"); return; }
     
     if (confirm("Are you sure? You will reset your progress to enter the Ascension Tree.")) {
-        // チップを加算して、今回のCookieはリセット
         prestigeLevel += pending;
         cookies = 0;
         totalCookies = 0;
-        
-        // 天界画面を表示
         openAscensionScreen();
     }
 }
 
-// 2. 天界画面を開く
 function openAscensionScreen() {
-    document.getElementById('game-container').style.display = 'none'; // ゲームを隠す
-    document.getElementById('ascension-screen').style.display = 'flex'; // 天界を表示
+    document.getElementById('game-container').style.display = 'none';
+    document.getElementById('ascension-screen').style.display = 'flex';
     updateAscensionDisplay();
 }
 
-// 3. 天界画面の表示更新
 function updateAscensionDisplay() {
     document.getElementById('heavenly-currency').innerText = formatNumber(prestigeLevel);
     const container = document.getElementById('heavenly-upgrades-container');
@@ -416,169 +354,122 @@ function updateAscensionDisplay() {
     });
 }
 
-// 4. 天界アップグレード購入
 function buyHeavenlyUpgrade(id) {
     const upg = heavenlyUpgrades.find(u => u.id === id);
     if (upg && !upg.unlocked && prestigeLevel >= upg.cost) {
         prestigeLevel -= upg.cost;
         upg.unlocked = true;
         updateAscensionDisplay();
-        saveGame(); // 購入のたびに保存
+        saveGame();
     }
 }
 
-// 5. 転生完了（ゲームに戻る）
 function finishAscension() {
-    // ★ここが修正ポイント：最後にもう一度クッキーを強制的に0にする
     cookies = 0;
     totalCookies = 0;
-
-    // 建物をリセット（所持数を0に、価格を初期値に）
     items.forEach(item => { 
         item.count = 0; 
-        item.cost = getInitialCost(item.name); 
+        item.cost = item.baseCost; 
         item.unlocked = item.trigger(); 
     });
-    
-    // スキルをリセット
     skills.forEach(skill => skill.unlocked = false);
-    
-    // スキルの再ロック解除チェック
     checkUnlocks();
 
-    // 画面を戻す
     document.getElementById('ascension-screen').style.display = 'none';
     document.getElementById('game-container').style.display = 'flex';
-    
-    // この状態で保存してリロード
     saveGame();
-    location.reload(); // リフレッシュして新しい人生を開始
+    location.reload();
 }
 
-const initialCosts = items.map(i => i.cost);
-function getInitialCost(name) {
-    let idx = items.findIndex(i => i.name === name);
-    return idx !== -1 ? initialCosts[idx] : 99999999;
-}
+// ==========================================
+//  ユーティリティ・演出
+// ==========================================
 
-// --- 購入処理（新しく追加！） ---
-function buyItem(id) {
-    const item = items[id];
-    let currentCost = item.cost;
-    
-    // 天界スキルでの割引計算
-    if (isHeavenlyUnlocked("h3")) {
-        currentCost = Math.floor(currentCost * 0.95);
+function formatNumber(num) {
+    if (num < 1000000) return Math.floor(num).toLocaleString();
+    const definitions = [
+        { val: 1e6, suffix: ' million' }, { val: 1e9, suffix: ' billion' },
+        { val: 1e12, suffix: ' trillion' }, { val: 1e15, suffix: ' quadrillion' }
+    ];
+    for (let i = definitions.length - 1; i >= 0; i--) {
+        if (num >= definitions[i].val) return (num / definitions[i].val).toFixed(3) + definitions[i].suffix;
     }
-
-    // お金が足りているかチェック
-    if (cookies >= currentCost) {
-        // 1. お金を払う
-        cookies -= currentCost;
-        
-        // 2. アイテムを増やす
-        item.count++;
-
-        // 3. 次の価格を計算（基本価格 × 1.15の個数乗）
-        // ※こうすることで、毎回正しい価格が再計算されます
-        item.cost = Math.ceil(item.baseCost * Math.pow(1.15, item.count));
-
-        // 4. 画面更新
-        updateDisplay();
-        createShopButtons(); // ボタンの表示価格も更新
-        checkUnlocks();      // 解禁要素チェック
-        
-        // 音を鳴らす
-        const sound = baseSound.cloneNode();
-        sound.playbackRate = 1.0 + (id * 0.1); 
-        sound.play().catch(() => {});
-    }
+    return num.toExponential(3);
 }
 
-// --- ボタン生成（修正版） ---
-function createShopButtons() {
-    const container = document.getElementById('shop-container');
-    if (!container) return;
-    
-    // ※毎回クリアせずに、中身の数字だけ更新する方が軽量ですが、
-    // 今回はバグ修正優先で再描画します
-    container.innerHTML = "";
-    
-    items.forEach((item, index) => {
-        if (!item.unlocked) return;
-        
-        // 表示用の価格計算
-        let displayCost = item.cost;
-        if (isHeavenlyUnlocked("h3")) displayCost = Math.floor(displayCost * 0.95);
-
-        const btn = document.createElement("div");
-        btn.className = "store-item";
-        btn.id = "shop-btn-" + index;
-        
-        // お金が足りるかチェックしてクラス付与
-        if (cookies >= displayCost) btn.classList.add('affordable');
-        
-        btn.innerHTML = `
-            <div class="item-icon-placeholder" style="display:flex;justify-content:center;align-items:center;font-size:30px;">${item.iconStr}</div>
-            <div class="item-info">
-                <div class="item-name">${item.name}</div>
-                <div class="item-cost">${formatNumber(displayCost)}</div>
-            </div>
-            <div class="item-owned">${item.count}</div>
-        `;
-
-        // クリックしたら buyItem関数 を呼ぶように変更！
-        btn.onclick = () => {
-            buyItem(index);
-        };
-        
-        container.appendChild(btn);
-    });
+function formatTime(ms) {
+    let seconds = Math.floor(ms / 1000);
+    if (seconds < 60) return seconds + "s";
+    let minutes = Math.floor(seconds / 60);
+    let hours = Math.floor(minutes / 60);
+    seconds %= 60;
+    minutes %= 60;
+    if (hours > 0) return `${hours}h ${minutes}m`;
+    return `${minutes}m ${seconds}s`;
 }
 
-function createSkillButtons() {
-    const container = document.getElementById('lab-container');
-    if (!container) return;
-    container.innerHTML = "";
-    skills.forEach((skill, index) => {
-        if (!skill.unlocked && skill.trigger()) {
-            const btn = document.createElement("div");
-            btn.className = "skill-icon";
-            btn.innerHTML = `<div style="font-size:30px;text-align:center;line-height:46px;">${skill.iconStr}</div>`;
-            const tooltip = document.createElement("div");
-            tooltip.className = "tooltip";
-            tooltip.innerHTML = `
-                <div style="font-weight:bold;margin-bottom:5px;">${skill.name}</div>
-                <div style="font-size:0.9em;margin-bottom:5px;">${skill.desc}</div>
-                <div style="color:${cookies >= skill.cost ? '#66cdaa' : '#f44336'};font-weight:bold;">Price: ${formatNumber(skill.cost)}</div>
-            `;
-            btn.appendChild(tooltip);
-            if (cookies >= skill.cost) btn.classList.add('affordable');
-            btn.onclick = () => {
-                if (cookies >= skill.cost) {
-                    cookies -= skill.cost;
-                    skill.unlocked = true;
-                    updateDisplay();
-                    createSkillButtons();
-                }
-            };
-            container.appendChild(btn);
+function createFloatingText(x, y, text) {
+    const el = document.createElement('div');
+    el.className = 'click-visual';
+    el.innerText = text;
+    el.style.left = (x - 20 + Math.random() * 40) + 'px'; 
+    el.style.top = (y - 20) + 'px';
+    document.body.appendChild(el);
+    setTimeout(() => el.remove(), 1000);
+}
+
+// --- 実績チェック ---
+function checkAchievements() {
+    achievements.forEach(ach => {
+        if (!ach.unlocked && ach.trigger()) {
+            ach.unlocked = true;
+            showAchievementNotification(ach);
+            updateAchievementDisplay();
         }
     });
 }
+function showAchievementNotification(ach) {
+    const notif = document.getElementById('achievement-notification');
+    if(!notif) return;
+    document.getElementById('ach-title').innerText = "🏆 Achievement Unlocked!";
+    document.getElementById('ach-desc').innerText = ach.name;
+    const sound = baseSound.cloneNode();
+    sound.playbackRate = 0.5; 
+    sound.play().catch(() => {});
+    notif.classList.add('show');
+    setTimeout(() => notif.classList.remove('show'), 4000);
+}
+function updateAchievementDisplay() {
+    const container = document.getElementById('achievement-container');
+    if (!container) return;
+    container.innerHTML = "";
+    achievements.forEach(ach => {
+        const div = document.createElement("div");
+        div.className = "achievement-list-item" + (ach.unlocked ? " unlocked" : "");
+        div.innerHTML = `
+            <div style="font-size:24px;">${ach.unlocked ? ach.icon : "❓"}</div>
+            <div>
+                <div style="font-weight:bold; font-size:12px;">${ach.unlocked ? ach.name : "???"}</div>
+                <div style="font-size:10px;">${ach.unlocked ? ach.desc : "Keep playing..."}</div>
+            </div>
+        `;
+        container.appendChild(div);
+    });
+}
 
-// --- セーブ機能 ---
+// ==========================================
+//  セーブ & ロード
+// ==========================================
 function saveGame() {
     const saveData = {
         cookies: cookies,
         totalCookies: totalCookies,
         lifetimeCookies: lifetimeCookies,
         prestigeLevel: prestigeLevel,
-        lastSaveTime: Date.now(), // 現在時刻（ミリ秒）を記録
-        items: items.map(i => ({ count: i.count, cost: i.cost, unlocked: i.unlocked })),
+        lastSaveTime: Date.now(),
+        items: items.map(i => ({ count: i.count, unlocked: i.unlocked })), // countとunlockedだけ保存
         skills: skills.map(s => ({ unlocked: s.unlocked })),
         achievements: achievements.map(a => ({ id: a.id, unlocked: a.unlocked })),
-        // ★天界データも保存
         heavenlyUpgrades: heavenlyUpgrades.map(h => ({ id: h.id, unlocked: h.unlocked })),
         difficultyMode: difficultyName === "Easy" ? 'easy' : difficultyName === "Hard" ? 'hard' : difficultyName === "V.Hard" ? 'veryhard' : 'normal',
         theme: currentTheme,
@@ -601,17 +492,13 @@ function loadGame() {
         if (data.items) {
             data.items.forEach((saved, i) => {
                 if (items[i]) {
-                    // 個数とロック状態だけ復元する
                     items[i].count = saved.count;
                     items[i].unlocked = saved.unlocked;
-                    
-                    // 値段はセーブデータを信用せず、正しい計算式で作り直す！
-                    // (基本価格 × 1.15 の n乗)
+                    // 価格は再計算
                     items[i].cost = Math.ceil(items[i].baseCost * Math.pow(1.15, items[i].count));
                 }
             });
         }
-
         if (data.skills) {
             data.skills.forEach((saved, i) => { if (skills[i]) skills[i].unlocked = saved.unlocked; });
         }
@@ -621,34 +508,34 @@ function loadGame() {
                 if (ach) ach.unlocked = saved.unlocked;
             });
         }
-        updateAchievementDisplay(); 
-
-        // 天界データのロード
         if (data.heavenlyUpgrades) {
             data.heavenlyUpgrades.forEach(saved => {
                 const upg = heavenlyUpgrades.find(u => u.id === saved.id);
                 if (upg) upg.unlocked = saved.unlocked;
             });
         }
-
+        
         setMode(data.difficultyMode || 'normal');
         changeTheme(data.theme || 'default');
+        updateAchievementDisplay();
         
-        // オフラインボーナス計算
+        // オフラインボーナス
         if (data.lastSaveTime) {
             const now = Date.now();
             const secondsOffline = (now - data.lastSaveTime) / 1000;
-
             if (secondsOffline > 60) {
                 let gps = calculateGPS();
-                // 天界スキルh4を持っていたらオフライン生産有効（なければ0）
-                // ※以前のコードだと無条件でしたが、天界スキルの説明に合わせて修正する場合はここを調整
-                // 今回はシンプルに「誰でも50%」のままにしておきます
-                const offlineProduction = Math.floor(secondsOffline * gps * 0.5);
+                // 天界スキルh4でオフライン生産
+                let rate = isHeavenlyUnlocked("h4") ? 0.5 : 0; 
+                // ここではデバッグ用にh4持ってなくても少し入るようにしてもいいが、
+                // 一応条件通りにするなら rate = 0;
+                // 今回は「誰でも50%」のままにするなら rate = 0.5
+                rate = 0.5;
 
+                const offlineProduction = Math.floor(secondsOffline * gps * rate);
                 if (offlineProduction > 0) {
                     addCookies(offlineProduction);
-                    alert(`Welcome back!\nYou were gone for ${formatTime(secondsOffline)}.\nYour bakers produced ${formatNumber(offlineProduction)} cookies while you were away.`);
+                    alert(`Welcome back!\nYou were gone for ${formatTime(secondsOffline * 1000)}.\nYour bakers produced ${formatNumber(offlineProduction)} cookies.`);
                 }
             }
         }
@@ -658,123 +545,123 @@ function loadGame() {
     }
 }
 
+function startGame(lang) {
+    currentLang = lang;
+    if (document.getElementById('cookie-label')) document.getElementById('cookie-label').innerText = t("score");
+    if (document.getElementById('store-title')) document.getElementById('store-title').innerText = t("storeTitle");
+
+    createShopButtons();
+    createSkillButtons();
+    document.getElementById('opening-overlay').classList.add('fade-out');
+}
+
+// ==========================================
+//  設定・その他
+// ==========================================
+
+function setMode(mode) {
+    document.querySelectorAll('.mode-btn').forEach(btn => btn.classList.remove('active'));
+    if (mode === 'easy') { difficulty = 2.0; difficultyName = "Easy"; document.getElementById('mode-easy').classList.add('active'); }
+    else if (mode === 'normal') { difficulty = 1.0; difficultyName = "Normal"; document.getElementById('mode-normal').classList.add('active'); }
+    else if (mode === 'hard') { difficulty = 0.5; difficultyName = "Hard"; document.getElementById('mode-hard').classList.add('active'); }
+    else if (mode === 'veryhard') { difficulty = 0.2; difficultyName = "V.Hard"; document.getElementById('mode-veryhard').classList.add('active'); }
+    if(document.getElementById('current-mode-name')) document.getElementById('current-mode-name').innerText = difficultyName;
+}
+
+function changeTheme(themeName) {
+    currentTheme = themeName;
+    document.body.className = ""; 
+    document.body.classList.add(themeName);
+}
+
 function resetGame() {
     if (confirm("WARNING: Wipe SAVE?")) {
         localStorage.clear();
         location.reload();
     }
 }
-function startGame(lang) {
-    currentLang = lang; // 選んだ言語（'en' か 'ja'）を保存
 
-    // 画面の固定テキストを翻訳（IDがある場所のみ）
-    if (document.getElementById('cookie-label')) {
-        document.getElementById('cookie-label').innerText = t("score");
-    }
-    if (document.getElementById('store-title')) {
-        document.getElementById('store-title').innerText = t("storeTitle");
-    }
-
-    // ボタンの中身を翻訳後の言語で作り直す
-    createShopButtons();
-    createSkillButtons();
-    
-    // 黒い幕（オープニング）をフワッと消す
-    document.getElementById('opening-overlay').classList.add('fade-out');
-}
-// --- ゴールデンクッキーシステム ---
-
+// ==========================================
+//  ゴールデンクッキー
+// ==========================================
 function spawnGoldenCookie() {
-    // 画面のランダムな位置（端っこすぎないように調整）
     const x = Math.random() * (window.innerWidth - 100);
     const y = Math.random() * (window.innerHeight - 100);
-
     const golden = document.createElement("div");
-    golden.innerText = "🍪"; // 絵文字を使用（画像に変えてもOK）
+    golden.innerText = "🍪";
     golden.className = "golden-cookie";
     golden.style.left = x + "px";
     golden.style.top = y + "px";
-
-    // クリックしたときの処理
-    golden.onclick = (e) => {
-        clickGoldenCookie(e);
-        golden.remove(); // クリックしたら消す
-    };
-
+    golden.onclick = (e) => { clickGoldenCookie(e); golden.remove(); };
     document.body.appendChild(golden);
-
-    // 15秒間クリックしなかったら自然消滅
-    setTimeout(() => {
-        if (golden.parentNode) {
-            golden.remove();
-        }
-    }, 15000);
-
-    // 次の出現予約（再帰呼び出し）
+    setTimeout(() => { if (golden.parentNode) golden.remove(); }, 15000);
     scheduleNextGoldenCookie();
 }
 
 function scheduleNextGoldenCookie() {
-    // 基本：30秒〜90秒の間に1回出る
     let minTime = 30000; 
     let maxTime = 90000;
-
-    // ★天界スキル「Angelic Luck (h5)」を持っていたら出現頻度が2倍（時間は半分）
-    if (isHeavenlyUnlocked("h5")) {
-        minTime /= 2;
-        maxTime /= 2;
-    }
-
+    if (isHeavenlyUnlocked("h5")) { minTime /= 2; maxTime /= 2; }
     const randomTime = minTime + Math.random() * (maxTime - minTime);
     setTimeout(spawnGoldenCookie, randomTime);
 }
 
-let buffTimer = null; // タイマー管理用（連続で引いたときのリセット用）
-
+let buffTimer = null;
 function clickGoldenCookie(event) {
-    // 乱数で効果を決める（0〜0.99...）
-    const rand = Math.random();
-    
-    // 音を鳴らす
     const sound = baseSound.cloneNode();
     sound.playbackRate = 1.5;
     sound.play().catch(() => {});
 
-    // --- パターンA：Frenzy (7倍モード) ---
-    // 50%の確率 (rand < 0.5) で発動
+    const rand = Math.random();
     if (rand < 0.5) {
         buffMultiplier = 7;
-        updateDisplay(); // 画面の数字(CpS)をすぐに更新！
-        
-        // 演出
+        updateDisplay();
         createFloatingText(event.clientX, event.clientY, "Frenzy! (x7)");
-        createFloatingText(event.clientX, event.clientY + 30, "for 77 seconds");
-        
-        // もし既に7倍中なら、前のタイマーを消して時間をリセット
         if (buffTimer) clearTimeout(buffTimer);
-
-        // 77秒後に元に戻す予約
         buffTimer = setTimeout(() => {
             buffMultiplier = 1;
-            updateDisplay(); // 元に戻ったことを画面に反映
+            updateDisplay();
             createFloatingText(window.innerWidth/2, window.innerHeight/2, "Frenzy ended...");
         }, 77000);
-    } 
-    // --- パターンB：Lucky (大量ゲット) ---
-    else {
+    } else {
         let gps = calculateGPS();
-        // 7倍中なら、その7倍のGPSを基準にボーナスをあげる（超お得！）
         let bonus = Math.max(777, gps * 900);
-        
         addCookies(bonus);
-
-        // 演出
         createFloatingText(event.clientX, event.clientY, "Lucky!");
-        setTimeout(() => {
-            createFloatingText(event.clientX, event.clientY - 30, "+" + formatNumber(bonus));
-        }, 200);
+        setTimeout(() => createFloatingText(event.clientX, event.clientY - 30, "+" + formatNumber(bonus)), 200);
     }
 }
+
+// ==========================================
+//  ニュースティッカー
+// ==========================================
+const newsData = [
+    { text: "Cookie Clicker game found to be highly addictive!", condition: () => true },
+    { text: "Local bakery shortage reported due to mysterious cookie production.", condition: () => true },
+    { text: "Your cookies are becoming popular in the neighborhood.", condition: () => totalCookies > 1000 },
+    { text: "Cookie universe expanding rapidly!", condition: () => totalCookies > 1000000 },
+    { text: "Grandmas demand higher wages and better rolling pins.", condition: () => items[1].count > 0 },
+    { text: "Strange rituals observed at local retirement home.", condition: () => items[1].count > 50 },
+    { text: "Scientists discover genetically modified chocolate chips.", condition: () => items[2].count > 0 },
+    { text: "Your fingers must be tired by now.", condition: () => totalClicks > 1000 },
+    { text: "People say they feel like they've lived this life before...", condition: () => prestigeLevel > 0 }
+];
+
+function updateNews() {
+    const content = document.getElementById('news-content');
+    if (!content) return;
+    const availableNews = newsData.filter(n => n.condition());
+    const randomNews = availableNews[Math.floor(Math.random() * availableNews.length)];
+    content.style.opacity = 0;
+    setTimeout(() => {
+        content.innerText = randomNews.text;
+        content.style.opacity = 1;
+    }, 500);
+}
+
+// ==========================================
+//  初期化
+// ==========================================
 window.onload = function() {
     loadGame();
     checkUnlocks();
@@ -782,83 +669,23 @@ window.onload = function() {
     createShopButtons();
     updateDisplay();
     scheduleNextGoldenCookie();
+    
+    // ニュースティッカー
+    setTimeout(updateNews, 1000);
+    setInterval(updateNews, 10000);
 
+    // メインループ
     setInterval(() => {
         let gps = calculateGPS();
-        addCookies(gps / 10);
+        if (gps > 0) addCookies(gps / 10);
+        updateDisplay(); // ここで定期更新を入れると滑らかになる
         checkAchievements();
     }, 100);
+    
+    // オートセーブ
     setInterval(saveGame, 10000);
 };
-// ウィンドウやタブを閉じるときに強制セーブ
+
 window.onbeforeunload = function() {
     saveGame();
 };
-// 秒数を「1h 20m 30s」のような読みやすい形式にする関数
-function formatTime(seconds) {
-    if (seconds < 60) return Math.floor(seconds) + "s";
-    
-    let minutes = Math.floor(seconds / 60);
-    let hours = Math.floor(minutes / 60);
-    let days = Math.floor(hours / 24);
-
-    seconds = Math.floor(seconds % 60);
-    minutes = minutes % 60;
-    hours = hours % 24;
-
-    if (days > 0) return `${days}d ${hours}h`;
-    if (hours > 0) return `${hours}h ${minutes}m`;
-    return `${minutes}m ${seconds}s`;
-}
-// ==========================================
-//  ニュースティッカー機能
-// ==========================================
-
-// ニュースのネタ帳
-const newsData = [
-    // 条件なし（いつでも出る）
-    { text: "Cookie Clicker game found to be highly addictive!", condition: () => true },
-    { text: "Local bakery shortage reported due to mysterious cookie production.", condition: () => true },
-    
-    // クッキーの枚数によるニュース
-    { text: "Your cookies are becoming popular in the neighborhood.", condition: () => totalCookies > 1000 },
-    { text: "Cookie universe expanding rapidly!", condition: () => totalCookies > 1000000 },
-    
-    // 建物によるニュース（おばあちゃん）
-    { text: "Grandmas demand higher wages and better rolling pins.", condition: () => items[1].count > 0 },
-    { text: "Strange rituals observed at local retirement home.", condition: () => items[1].count > 50 },
-    
-    // 建物によるニュース（農場）
-    { text: "Scientists discover genetically modified chocolate chips.", condition: () => items[2].count > 0 },
-    
-    // カーソル
-    { text: "Your fingers must be tired by now.", condition: () => totalClicks > 1000 },
-    
-    // 天界・転生
-    { text: "People say they feel like they've lived this life before...", condition: () => prestigeLevel > 0 }
-];
-
-function updateNews() {
-    const content = document.getElementById('news-content');
-    if (!content) return;
-
-    // 今の状況で表示できるニュースだけを抽出
-    const availableNews = newsData.filter(n => n.condition());
-    
-    // その中からランダムに1つ選ぶ
-    const randomNews = availableNews[Math.floor(Math.random() * availableNews.length)];
-    
-    // フェードアウトさせてから切り替える演出
-    content.style.opacity = 0;
-    
-    setTimeout(() => {
-        content.innerText = randomNews.text;
-        content.style.opacity = 1;
-    }, 500); // 0.5秒かけて消えて、切り替わって、また出る
-}
-
-// 10秒ごとにニュースを切り替える
-setInterval(updateNews, 10000);
-
-// ゲーム開始時に一回すぐ実行
-setTimeout(updateNews, 1000);
