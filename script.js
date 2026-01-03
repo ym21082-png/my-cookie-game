@@ -827,73 +827,56 @@ function saveGame() {
     localStorage.setItem("myClickerSaveV8", JSON.stringify(saveData));
 }
 
+// ゲームロード関数（完全修正版）
 function loadGame() {
-    const data = JSON.parse(localStorage.getItem("myClickerSaveV8"));
-    if (data) {
-        cookies = data.cookies || 0;
-        totalCookies = data.totalCookies || data.cookies;
-        lifetimeCookies = data.lifetimeCookies || 0;
-        prestigeLevel = data.prestigeLevel || 0;
-        totalClicks = data.totalClicks || 0;
-        startTime = data.startTime || Date.now();
+    var savedGame = localStorage.getItem("myClickerSaveV8");
+    if (savedGame) {
+        var data = JSON.parse(savedGame);
 
+        // --- 基本データの読み込み ---
+        if (typeof data.cookies !== "undefined") cookies = data.cookies;
+        if (typeof data.totalCookies !== "undefined") totalCookies = data.totalCookies;
+        if (typeof data.lifetimeCookies !== "undefined") lifetimeCookies = data.lifetimeCookies;
+        if (typeof data.prestigeLevel !== "undefined") prestigeLevel = data.prestigeLevel;
+        if (typeof data.startTime !== "undefined") startTime = data.startTime;
+        
+        // --- アイテム（建物）の読み込み ---
         if (data.items) {
-            data.items.forEach((saved, i) => {
+            for (let i = 0; i < data.items.length; i++) {
                 if (items[i]) {
-                    items[i].count = saved.count;
-                    items[i].unlocked = saved.unlocked;
-                    items[i].cost = Math.ceil(items[i].baseCost * Math.pow(1.15, items[i].count));
-                }
-            });
-        }
-        if (data.skills) {
-            data.skills.forEach((saved, i) => { if (skills[i]) skills[i].unlocked = saved.unlocked; });
-        }
-        if (data.achievements) {
-            data.achievements.forEach(saved => {
-                const ach = achievements.find(a => a.id === saved.id);
-                if (ach) ach.unlocked = saved.unlocked;
-            });
-        }
-        if (data.heavenlyUpgrades) {
-            data.heavenlyUpgrades.forEach(saved => {
-                const upg = heavenlyUpgrades.find(u => u.id === saved.id);
-                if (upg) upg.unlocked = saved.unlocked;
-            });
-        }
-        
-        setMode(data.difficultyMode || 'normal');
-        changeTheme(data.theme || 'default');
-        updateAchievementDisplay();
-        
-        if (data.lastSaveTime) {
-            const now = Date.now();
-            const secondsOffline = (now - data.lastSaveTime) / 1000;
-            if (secondsOffline > 60) {
-                let gps = calculateGPS();
-                let rate = isHeavenlyUnlocked("h4") ? 0.5 : 0; 
-                rate = 0.5; // Temporarily 50% for everyone
-
-                const offlineProduction = Math.floor(secondsOffline * gps * rate);
-                if (offlineProduction > 0) {
-                    addCookies(offlineProduction);
-                    alert(`Welcome back!\nYou were gone for ${formatTime(secondsOffline * 1000)}.\nYour bakers produced ${formatNumber(offlineProduction)} cookies.`);
+                    items[i].count = data.items[i].count;
+                    items[i].unlocked = data.items[i].unlocked;
                 }
             }
         }
-    } else {
-        setMode('normal');
-        items[0].unlocked = true; 
-    }
-    if (data.isApocalypse) {
-    startGrandmapocalypse(); // 保存データで暴走してたら、即座に暴走開始
-}
-}
-if (data.grimoireData) {
+
+        // --- スキル・実績などの読み込み ---
+        if (data.skills && typeof skills !== 'undefined') {
+            for (let i = 0; i < data.skills.length; i++) {
+                if (skills[i]) skills[i].unlocked = data.skills[i].unlocked;
+            }
+        }
+        if (data.achievements && typeof achievements !== 'undefined') {
+            for (let i = 0; i < data.achievements.length; i++) {
+                 if (achievements[i]) achievements[i].unlocked = data.achievements[i].unlocked;
+            }
+        }
+        if (data.heavenlyUpgrades && typeof heavenlyUpgrades !== 'undefined') {
+             for (let i = 0; i < data.heavenlyUpgrades.length; i++) {
+                 if (heavenlyUpgrades[i]) heavenlyUpgrades[i].unlocked = data.heavenlyUpgrades[i].unlocked;
+             }
+        }
+
+        // --- その他の設定 ---
+        if (data.theme) currentTheme = data.theme;
+        if (data.isApocalypse) isApocalypse = data.isApocalypse;
+        
+        // ▼▼▼ グリモア（魔法）の読み込み ▼▼▼
+        if (data.grimoireData) {
             grimoireData = data.grimoireData;
         }
-        
-        // （画面更新のためにUIアップデートを呼ぶ）
+
+        // 最後にUI更新
         if (typeof updateGrimoireUI === "function") updateGrimoireUI();
     }
 }
