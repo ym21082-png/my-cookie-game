@@ -445,13 +445,14 @@ function buyItem(id) {
     }
 }
 
-// --- スキルボタン作成（修正版） ---
+// --- スキルボタン作成（修正版：暴走スイッチ付き） ---
 function createSkillButtons() {
     const container = document.getElementById('lab-container');
     if (!container) return;
     container.innerHTML = "";
     
     skills.forEach((skill) => {
+        // まだ持っていなくて、かつアンロック条件(trigger)を満たしているなら表示
         if (!skill.unlocked && skill.trigger()) {
             const btn = document.createElement("div");
             btn.className = "skill-icon";
@@ -460,29 +461,43 @@ function createSkillButtons() {
             
             if (cookies >= skill.cost) btn.classList.add('affordable');
 
-            // マウスイベント
+            // マウスイベント（説明表示）
             btn.addEventListener('mouseenter', function() {
-                showTooltip(this, skill.name, skill.desc, "Upgrade", skill.cost, cookies >= skill.cost);
+                // showTooltip関数がある場合のみ実行
+                if (typeof showTooltip === "function") {
+                    showTooltip(this, skill.name, skill.desc, "Upgrade", skill.cost, cookies >= skill.cost);
+                }
             });
             btn.addEventListener('mouseleave', function() {
-                hideTooltip();
+                if (typeof hideTooltip === "function") hideTooltip();
             });
 
+            // クリック時の動作
             btn.onclick = () => {
                 if (cookies >= skill.cost) {
                     cookies -= skill.cost;
                     skill.unlocked = true;
+
+                    // ▼▼▼ ここが追加した「One Mind」用の処理です ▼▼▼
                     if (skill.name === "One Mind") {
-                        startGrandmapocalypse(); 
+                        // startGrandmapocalypse関数があれば実行
+                        if (typeof startGrandmapocalypse === "function") {
+                            startGrandmapocalypse(); 
+                        } else {
+                            console.log("暴走関数が見つかりません");
+                        }
                     }
+                    // ▲▲▲ ここまで ▲▲▲
+
                     if(typeof baseSound !== 'undefined'){
                         const sound = baseSound.cloneNode();
                         sound.playbackRate = 1.2;
                         sound.play().catch(()=>{});
                     }
-                    hideTooltip();
+                    
+                    if (typeof hideTooltip === "function") hideTooltip();
                     updateDisplay();
-                    createSkillButtons();
+                    createSkillButtons(); // ボタンを再描画（買ったスキルを消すため）
                 }
             };
             container.appendChild(btn);
