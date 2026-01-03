@@ -248,6 +248,7 @@ function updateDisplay() {
         document.getElementById('stat-buildings').innerText = totalBuildings.toLocaleString();
         document.getElementById('stat-time').innerText = formatTime(Date.now() - startTime);
     }
+    updateShopColors();
 }
 
 // --- ショップボタン作成（完全に新しいバージョン） ---
