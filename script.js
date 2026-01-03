@@ -1275,7 +1275,4 @@ function updateShopColors() {
         }
     });
 }
-// 毎フレームマナ制御を呼び出す
-setInterval(updateMana, 100); // 0.1秒ごとに更新
-// ▼ マナ回復などの更新処理を0.1秒ごとに実行するループ
 setInterval(updateMana, 100);
