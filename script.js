@@ -1249,25 +1249,26 @@ function updateShopColors() {
         }
     });
 }
-// ▼▼▼▼▼▼ グリモア（魔導書）完全修復セット ▼▼▼▼▼▼
+// ▼▼▼▼▼▼ グリモア（魔導書）修正版・衝突回避バージョン ▼▼▼▼▼▼
 
-// 1. もしデータがなければ初期化する（重要！）
+// 1. データの初期化
+// （既にデータ変数はあるはずなので、varを付けずに中身だけセットします）
 if (typeof grimoireData === "undefined" || !grimoireData) {
-    var grimoireData = {
+    grimoireData = {
         mana: 100,
         maxMana: 100
     };
 }
 
-// 2. 呪文リストの定義（これが無いと空っぽになります）
-var spells = [
+// 2. 呪文リストの定義
+// （ここも念のため var を付けずに上書きします）
+spells = [
     {
         id: 1,
         name: "Conjure Baked Goods",
         cost: 40,
         desc: "30分間のクッキーを一瞬で生産します。（失敗率あり）",
         cast: function() {
-            // クッキー生産ロジック（簡易版）
             var gain = (cookies + 100) * 0.1; 
             cookies += gain;
             return "魔法の効果！ " + Math.floor(gain) + " クッキーを獲得しました！";
@@ -1279,8 +1280,6 @@ var spells = [
         cost: 60,
         desc: "ゴールデンクッキーを強制的に出現させます。",
         cast: function() {
-            // ここにゴールデンクッキー出現処理を入れる
-            // （簡易的にメッセージだけ表示）
             return "運命をねじ曲げました！（ゴールデンクッキー出現）";
         }
     }
@@ -1288,15 +1287,17 @@ var spells = [
 
 // 3. 呪文を使う処理
 function castSpell(id) {
+    // spellsが未定義の可能性に備えてチェック
+    if (typeof spells === "undefined") return;
+
     const spell = spells.find(s => s.id === id);
     if (!spell) return;
     
-    // マナチェック
     if (grimoireData.mana >= spell.cost) {
         grimoireData.mana -= spell.cost;
         let msg = spell.cast();
-        alert(msg); // 簡易的な通知
-        renderGrimoireContents(); // 画面更新
+        alert(msg);
+        renderGrimoireContents();
     } else {
         alert("マナが足りません！");
     }
@@ -1307,7 +1308,9 @@ function renderGrimoireContents() {
     let container = document.getElementById("grimoire-container");
     if (!container) return;
     
-    // 現在のマナを表示用に計算
+    // データがない場合の安全策
+    if (!grimoireData) return;
+
     let currentMana = Math.floor(grimoireData.mana);
     
     container.innerHTML = `
@@ -1322,39 +1325,38 @@ function renderGrimoireContents() {
         <div id="spells-list" style="max-height: 300px; overflow-y: auto;"></div>
     `;
     
-    // 呪文ボタンを追加
     const list = document.getElementById("spells-list");
-    spells.forEach(spell => {
-        const btn = document.createElement("div");
-        Object.assign(btn.style, {
-            background: "#2d2d2d",
-            border: "1px solid #444",
-            padding: "8px",
-            marginBottom: "8px",
-            cursor: "pointer",
-            borderRadius: "4px",
-            color: "white"
+    if (typeof spells !== "undefined") {
+        spells.forEach(spell => {
+            const btn = document.createElement("div");
+            Object.assign(btn.style, {
+                background: "#2d2d2d",
+                border: "1px solid #444",
+                padding: "8px",
+                marginBottom: "8px",
+                cursor: "pointer",
+                borderRadius: "4px",
+                color: "white"
+            });
+            
+            btn.onmouseover = () => btn.style.background = "#3d3d3d";
+            btn.onmouseout = () => btn.style.background = "#2d2d2d";
+            
+            btn.innerHTML = `
+                <div style="font-weight:bold;">${spell.name} <span style="color:#aaa; font-size:0.9em;">(MP:${spell.cost})</span></div>
+                <div style="font-size:0.8em; color:#bbb;">${spell.desc}</div>
+            `;
+            
+            btn.onclick = () => castSpell(spell.id);
+            list.appendChild(btn);
         });
-        
-        // マウスホバー効果
-        btn.onmouseover = () => btn.style.background = "#3d3d3d";
-        btn.onmouseout = () => btn.style.background = "#2d2d2d";
-        
-        btn.innerHTML = `
-            <div style="font-weight:bold;">${spell.name} <span style="color:#aaa; font-size:0.9em;">(MP:${spell.cost})</span></div>
-            <div style="font-size:0.8em; color:#bbb;">${spell.desc}</div>
-        `;
-        
-        btn.onclick = () => castSpell(spell.id);
-        list.appendChild(btn);
-    });
+    }
 }
 
-// 5. ウィンドウの開閉（ボタンから呼ばれるやつ）
+// 5. ウィンドウの開閉
 function toggleGrimoire() {
     let container = document.getElementById("grimoire-container");
     
-    // コンテナがなければ作成
     if (!container) {
         container = document.createElement("div");
         container.id = "grimoire-container";
@@ -1374,23 +1376,22 @@ function toggleGrimoire() {
         document.body.appendChild(container);
     }
     
-    // 表示・非表示の切り替え
     if (container.style.display === "none" || container.style.display === "") {
         container.style.display = "block";
-        renderGrimoireContents(); // ★ここで中身を描画！
+        renderGrimoireContents();
     } else {
         container.style.display = "none";
     }
 }
 
-// 6. 常にマナを回復・更新するタイマー
-setInterval(function() {
-    if (typeof grimoireData !== "undefined") {
+// 6. タイマー
+if (window.manaInterval) clearInterval(window.manaInterval);
+window.manaInterval = setInterval(function() {
+    if (typeof grimoireData !== "undefined" && grimoireData) {
         if (grimoireData.mana < grimoireData.maxMana) {
-            grimoireData.mana += 0.1; // 回復速度
+            grimoireData.mana += 0.1;
             if (grimoireData.mana > grimoireData.maxMana) grimoireData.mana = grimoireData.maxMana;
             
-            // ウィンドウが開いている時だけ画面更新
             var container = document.getElementById("grimoire-container");
             if (container && container.style.display === "block") {
                 renderGrimoireContents();
