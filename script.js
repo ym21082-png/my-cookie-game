@@ -779,6 +779,10 @@ function changeTheme(themeName) {
     currentTheme = themeName;
     document.body.className = ""; 
     document.body.classList.add(themeName);
+    // もし「暴走モード(isApocalypse)」がONなら、赤いクラスを付け直す
+    if (typeof isApocalypse !== 'undefined' && isApocalypse) {
+        document.body.classList.add('apocalypse');
+    }
 }
 
 function resetGame() {
