@@ -1034,3 +1034,17 @@ function updateShopColors() {
         }
     });
 }
+// グランマポカリプスの状態（false=通常, true=暴走）
+let isApocalypse = false;
+
+// 暴走モードを開始する関数
+function startGrandmapocalypse() {
+    isApocalypse = true;
+    document.body.classList.add('apocalypse'); // 背景を赤くする
+    
+    // ニュースなどがあれば不気味なメッセージを流す
+    console.log("おばあちゃん達の様子がおかしい...");
+    alert("警告：おばあちゃん達が暴動を起こしました！");
+}
+
+// （セーブ機能がある場合は、この isApocalypse も保存・読み込みしてください）
