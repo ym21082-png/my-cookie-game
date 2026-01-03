@@ -688,6 +688,7 @@ function saveGame() {
         theme: currentTheme,
         totalClicks: totalClicks,
         startTime: startTime
+        isApocalypse: isApocalypse,
     };
     localStorage.setItem("myClickerSaveV8", JSON.stringify(saveData));
 }
@@ -750,6 +751,9 @@ function loadGame() {
         setMode('normal');
         items[0].unlocked = true; 
     }
+    if (data.isApocalypse) {
+    startGrandmapocalypse(); // 保存データで暴走してたら、即座に暴走開始
+}
 }
 
 function startGame(lang) {
