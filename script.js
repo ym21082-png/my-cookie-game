@@ -776,18 +776,85 @@ function resetGame() {
 // ==========================================
 //  ゴールデンクッキー
 // ==========================================
+// --- 修正版 spawnGoldenCookie ---
 function spawnGoldenCookie() {
     const x = Math.random() * (window.innerWidth - 100);
     const y = Math.random() * (window.innerHeight - 100);
-    const golden = document.createElement("div");
-    golden.innerText = "🍪";
-    golden.className = "golden-cookie";
-    golden.style.left = x + "px";
-    golden.style.top = y + "px";
-    golden.onclick = (e) => { clickGoldenCookie(e); golden.remove(); };
-    document.body.appendChild(golden);
-    setTimeout(() => { if (golden.parentNode) golden.remove(); }, 15000);
+    
+    const cookieBtn = document.createElement("div");
+    
+    // ▼ 暴走モードなら50%で「レッドクッキー」にする判定
+    let isWrath = false;
+    if (isApocalypse && Math.random() < 0.5) {
+        isWrath = true;
+        cookieBtn.className = "wrath-cookie"; // 赤い見た目のクラス（CSSで定義が必要）
+        cookieBtn.innerText = "😱"; // 見た目を少し怖くする（または赤いクッキー画像）
+    } else {
+        cookieBtn.className = "golden-cookie";
+        cookieBtn.innerText = "🍪";
+    }
+
+    cookieBtn.style.left = x + "px";
+    cookieBtn.style.top = y + "px";
+    
+    // クリック時の処理
+    cookieBtn.onclick = (e) => { 
+        if (isWrath) {
+            clickWrathCookie(e); // 悪いクッキーの処理へ
+        } else {
+            clickGoldenCookie(e); // 普通の金クッキーの処理へ
+        }
+        cookieBtn.remove(); 
+    };
+    
+    document.body.appendChild(cookieBtn);
+    setTimeout(() => { if (cookieBtn.parentNode) cookieBtn.remove(); }, 15000);
     scheduleNextGoldenCookie();
+}
+// ==========================================
+//  グランマポカリプス（暴走モード）制御
+// ==========================================
+let isApocalypse = false; // 暴走状態の管理フラグ
+
+function startGrandmapocalypse() {
+    isApocalypse = true;
+    document.body.classList.add('apocalypse'); // 背景を赤くするCSSクラスを追加
+    
+    // 演出：アラートを出す
+    alert("警告：おばあちゃん達の様子がおかしい...\n「なぜ私たちを売ったの...？」");
+    
+    // ニュースなどがあれば書き換える
+    const news = document.getElementById('news-ticker');
+    if(news) news.innerText = "ニュース: おばあちゃん達が暴動を起こしています！";
+}
+
+// レッドクッキー（Wrath Cookie）をクリックした時の効果
+function clickWrathCookie(event) {
+    // 60%で悪い効果、40%で良い効果
+    let roll = Math.random();
+    
+    // 既存のクリック音があれば鳴らす
+    if(typeof baseSound !== 'undefined'){
+       const sound = baseSound.cloneNode();
+       sound.playbackRate = 0.6; // 低い音にする
+       sound.play().catch(()=>{});
+    }
+
+    if (roll < 0.6) {
+        // 【悪い効果】 "Clot" (血栓): クッキーを没収
+        let loss = Math.floor(cookies * 0.05) + 13; // 5%失う
+        cookies -= loss;
+        if(cookies < 0) cookies = 0;
+        
+        createFloatingText(event.clientX, event.clientY, "Clot! -" + formatNumber(loss));
+        updateDisplay();
+    } else {
+        // 【良い効果】 "Elder Frenzy" (狂乱): 生産力×666倍相当のボーナス
+        let gain = calculateGPS() * 666 + 666;
+        addCookies(gain);
+        createFloatingText(event.clientX, event.clientY, "Elder Frenzy! +" + formatNumber(gain));
+        updateDisplay();
+    }
 }
 
 function scheduleNextGoldenCookie() {
