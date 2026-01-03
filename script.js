@@ -63,29 +63,31 @@ let grimoireData = {
     isOpen: false      // 画面が開いているか
 };
 
-// 呪文リスト（修正版）
+// 呪文リスト（完全修正版）
 const spells = [
     {
         id: 0,
         name: "Conjure Baked Goods", // 焼き菓子召喚
         cost: 40,
-        desc: "30分間分のクッキーを一瞬で生産します。（失敗率あり）",
+        desc: "30分間分のクッキーを一瞬で生産します。",
         cast: function() {
-            // 現在のクッキーの10%を増やす（簡易計算）
-            let gain = Math.floor(cookies * 0.1);
-            if (gain === 0) gain = 100; // 最低保証
+            // ★修正点： 秒間生産量(GPS) × 60秒 × 30分
+            let gps = calculateGPS(); 
             
-            addCookies(gain); // addCookies関数を使って安全に増やす
-
-            // ▼▼▼ ここを修正しました（show → create） ▼▼▼
+            // もし生産量が0なら、最低保証として10個あげる
+            if (gps === 0) gps = 0.5; 
+            
+            let gain = Math.floor(gps * 60 * 30);
+            
+            addCookies(gain);
             createFloatingText(window.innerWidth/2, window.innerHeight/2, `+${formatNumber(gain)}`);
             
-            return "クッキーを召喚しました！";
+            return "クッキーを召喚しました！(30分文: " + formatNumber(gain) + ")";
         }
     },
     {
         id: 1,
-        name: "Force the Hand of Fate", // 運命を無理やり変える
+        name: "Force the Hand of Fate", 
         cost: 60,
         desc: "ゴールデンクッキーを強制的に出現させます。",
         cast: function() {
@@ -93,7 +95,7 @@ const spells = [
                 spawnGoldenCookie();
                 return "運命が変わった...";
             } else {
-                return "エラー：ゴールデンクッキーの機能が見つかりません";
+                return "エラー：ゴールデンクッキー機能が見つかりません";
             }
         }
     }
@@ -817,8 +819,9 @@ function saveGame() {
         difficultyMode: difficultyName === "Easy" ? 'easy' : difficultyName === "Hard" ? 'hard' : difficultyName === "V.Hard" ? 'veryhard' : 'normal',
         theme: currentTheme,
         totalClicks: totalClicks,
-        startTime: startTime,        // ← ★ここにカンマを付け足しました！
+        startTime: startTime, 
         isApocalypse: isApocalypse,
+        grimoireData: grimoireData
     };
     localStorage.setItem("myClickerSaveV8", JSON.stringify(saveData));
 }
@@ -885,7 +888,14 @@ function loadGame() {
     startGrandmapocalypse(); // 保存データで暴走してたら、即座に暴走開始
 }
 }
-
+if (data.grimoireData) {
+            grimoireData = data.grimoireData;
+        }
+        
+        // （画面更新のためにUIアップデートを呼ぶ）
+        if (typeof updateGrimoireUI === "function") updateGrimoireUI();
+    }
+}
 function startGame(lang) {
     currentLang = lang;
     if (document.getElementById('cookie-label')) document.getElementById('cookie-label').innerText = t("score");
@@ -1266,3 +1276,5 @@ function updateShopColors() {
 }
 // 毎フレームマナ制御を呼び出す
 setInterval(updateMana, 100); // 0.1秒ごとに更新
+// ▼ マナ回復などの更新処理を0.1秒ごとに実行するループ
+setInterval(updateMana, 100);
