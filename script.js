@@ -254,7 +254,6 @@ function isHeavenlyUnlocked(id) {
     if (grimoireData.isOpen) {
         updateGrimoireUI();
     }
-}
 
 function updateDisplay() {
     document.getElementById('score').innerText = formatNumber(cookies);
