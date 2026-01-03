@@ -63,7 +63,7 @@ let grimoireData = {
     isOpen: false      // 画面が開いているか
 };
 
-// 呪文リスト
+// 呪文リスト（修正版）
 const spells = [
     {
         id: 0,
@@ -71,13 +71,15 @@ const spells = [
         cost: 40,
         desc: "30分間分のクッキーを一瞬で生産します。（失敗率あり）",
         cast: function() {
-            // 現在の秒間生産量(cookiesPerSecond) × 60秒 × 30分
-            // ※ cookiesPerSecond変数がなければ itemsなどから計算する必要がありますが
-            // いったん簡易的に「現在のクッキーの10%」を増やす処理にします
-            let gain = cookies * 0.1;
+            // 現在のクッキーの10%を増やす（簡易計算）
+            let gain = Math.floor(cookies * 0.1);
             if (gain === 0) gain = 100; // 最低保証
-            cookies += gain;
-            showFloatingText(`+${formatNumber(gain)}`, window.innerWidth/2, window.innerHeight/2);
+            
+            addCookies(gain); // addCookies関数を使って安全に増やす
+
+            // ▼▼▼ ここを修正しました（show → create） ▼▼▼
+            createFloatingText(window.innerWidth/2, window.innerHeight/2, `+${formatNumber(gain)}`);
+            
             return "クッキーを召喚しました！";
         }
     },
@@ -87,12 +89,11 @@ const spells = [
         cost: 60,
         desc: "ゴールデンクッキーを強制的に出現させます。",
         cast: function() {
-            // ゴールデンクッキー出現関数があれば呼ぶ
             if (typeof spawnGoldenCookie === "function") {
                 spawnGoldenCookie();
                 return "運命が変わった...";
             } else {
-                return "まだゴールデンクッキー機能がありません！";
+                return "エラー：ゴールデンクッキーの機能が見つかりません";
             }
         }
     }
