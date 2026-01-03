@@ -723,3 +723,18 @@ body.apocalypse .item-icon-placeholder {
     box-shadow: 0 0 15px #f00;
     /* もし画像を使っているなら filter: hue-rotate(150deg); などで調整 */
 }
+/* 暴走時の背景 */
+body.apocalypse {
+    background: linear-gradient(to bottom, #300, #000) !important;
+}
+
+/* 暴走時のクッキー（レッドクッキー） */
+.wrath-cookie {
+    position: absolute;
+    font-size: 40px;
+    cursor: pointer;
+    animation: wobble 2s infinite; /* 揺れるアニメーションなどあれば */
+    filter: drop-shadow(0 0 10px red);
+    user-select: none;
+    z-index: 1000;
+}
