@@ -715,8 +715,7 @@ function saveGame() {
         theme: currentTheme,
         totalClicks: totalClicks,
         startTime: startTime,
-        isApocalypse: isApocalypse,   // ← カンマ忘れずに
-        grimoireData: grimoireData    // ← これが新しく追加した部分
+        isApocalypse: isApocalypse
     };
     localStorage.setItem("myClickerSaveV8", JSON.stringify(saveData));
 }
@@ -766,11 +765,6 @@ function loadGame() {
         if (data.theme) currentTheme = data.theme;
         if (data.isApocalypse) isApocalypse = data.isApocalypse;
         
-        // ★ マナ（魔法）の読み込み
-        if (data.grimoireData) {
-            grimoireData = data.grimoireData;
-        }
-
         // 最後にUI更新
         if (typeof updateGrimoireUI === "function") updateGrimoireUI();
     }
