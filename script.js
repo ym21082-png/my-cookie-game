@@ -687,7 +687,7 @@ function saveGame() {
         difficultyMode: difficultyName === "Easy" ? 'easy' : difficultyName === "Hard" ? 'hard' : difficultyName === "V.Hard" ? 'veryhard' : 'normal',
         theme: currentTheme,
         totalClicks: totalClicks,
-        startTime: startTime
+        startTime: startTime,        // ← ★ここにカンマを付け足しました！
         isApocalypse: isApocalypse,
     };
     localStorage.setItem("myClickerSaveV8", JSON.stringify(saveData));
