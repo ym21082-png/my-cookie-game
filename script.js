@@ -55,51 +55,7 @@ let totalClicks = 0;
 let startTime = Date.now();
 let buyAmount = 1; // 今何個まとめ買いモードか（初期値は1）
 const baseSound = new Audio('click.mp3'); // 音源ファイルが必要
-// --- グリモア（魔法）データ ---
-let grimoireData = {
-    unlocked: false,   // 魔法の塔を買うとtrueになる予定
-    mana: 100,         // 現在のマナ
-    maxMana: 100,      // 最大マナ
-    isOpen: false      // 画面が開いているか
-};
 
-// 呪文リスト（完全修正版）
-const spells = [
-    {
-        id: 0,
-        name: "Conjure Baked Goods", // 焼き菓子召喚
-        cost: 40,
-        desc: "30分間分のクッキーを一瞬で生産します。",
-        cast: function() {
-            // ★修正点： 秒間生産量(GPS) × 60秒 × 30分
-            let gps = calculateGPS(); 
-            
-            // もし生産量が0なら、最低保証として10個あげる
-            if (gps === 0) gps = 0.5; 
-            
-            let gain = Math.floor(gps * 60 * 30);
-            
-            addCookies(gain);
-            createFloatingText(window.innerWidth/2, window.innerHeight/2, `+${formatNumber(gain)}`);
-            
-            return "クッキーを召喚しました！(30分文: " + formatNumber(gain) + ")";
-        }
-    },
-    {
-        id: 1,
-        name: "Force the Hand of Fate", 
-        cost: 60,
-        desc: "ゴールデンクッキーを強制的に出現させます。",
-        cast: function() {
-            if (typeof spawnGoldenCookie === "function") {
-                spawnGoldenCookie();
-                return "運命が変わった...";
-            } else {
-                return "エラー：ゴールデンクッキー機能が見つかりません";
-            }
-        }
-    }
-];
 
 // --- 実績（トロフィー）データ ---
 const achievements = [
