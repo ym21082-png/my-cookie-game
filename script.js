@@ -1205,3 +1205,141 @@ function updateShopColors() {
         }
     });
 }
+/* ==========================================
+   🚀 新機能：タイムワープシステム (Time Warp)
+   魔法(Mana)の代わりに実装された科学スキル
+   ========================================== */
+
+// ページ読み込み完了時にパネルを作成する
+window.addEventListener('load', function() {
+    createTimeWarpPanel();
+});
+
+// 1. パネルとボタンを画面に作る関数
+function createTimeWarpPanel() {
+    // もし古い魔法パネルが残っていたら消す
+    var oldGrimoire = document.getElementById("grimoire-container");
+    if (oldGrimoire) oldGrimoire.style.display = "none";
+
+    // パネルの外枠作成
+    var panel = document.createElement("div");
+    panel.id = "timeWarpPanel";
+    panel.style.cssText = `
+        position: fixed;
+        bottom: 20px;
+        left: 20px;
+        width: 280px;
+        background-color: #1a1a1a;
+        border: 2px solid #00d2ff;
+        border-radius: 10px;
+        padding: 15px;
+        color: white;
+        font-family: Arial, sans-serif;
+        box-shadow: 0 0 20px rgba(0, 210, 255, 0.4);
+        z-index: 1000;
+    `;
+
+    // 中身のHTML
+    panel.innerHTML = `
+        <h3 style="margin: 0 0 10px 0; color: #00d2ff; text-align: center; border-bottom: 1px solid #444; padding-bottom: 8px;">
+            🚀 タイムワープ
+        </h3>
+        <p style="font-size: 12px; color: #aaa; margin-bottom: 12px; text-align: center;">
+            30分ぶんの生産を一瞬で完了させます。
+        </p>
+        <button id="btnTimeWarp" style="
+            width: 100%; 
+            padding: 12px; 
+            background: linear-gradient(135deg, #00d2ff, #0077ff); 
+            color: white; 
+            border: none; 
+            border-radius: 6px; 
+            font-weight: bold; 
+            cursor: pointer; 
+            font-size: 14px;
+            transition: all 0.2s;">
+            ⏳ 起動する (Get Cookies!)
+        </button>
+        <div id="warpStatus" style="margin-top: 10px; font-size: 12px; text-align: center; color: #00d2ff;">
+            STATUS: READY
+        </div>
+    `;
+
+    document.body.appendChild(panel);
+
+    // ボタンにクリックイベントを設定
+    document.getElementById("btnTimeWarp").onclick = activateTimeWarp;
+}
+
+// 2. タイムワープを実行するロジック
+var isWarpCoolingDown = false;
+
+function activateTimeWarp() {
+    if (isWarpCoolingDown) return;
+
+    // 現在の秒間生産量(CPS)を計算
+    var currentCPS = calculateTotalCPS();
+
+    // 30分 = 1800秒分のクッキーを獲得
+    var gainedCookies = currentCPS * 1800;
+    
+    // もしCPSが0なら、最低保証として1000枚あげる
+    if (gainedCookies === 0) gainedCookies = 1000;
+
+    // クッキーを加算 (変数が cookieCount か cookies か両対応)
+    if (typeof cookieCount !== 'undefined') {
+        cookieCount += gainedCookies;
+    } else if (typeof cookies !== 'undefined') {
+        cookies += gainedCookies;
+    }
+
+    // 画面のクッキー枚数を更新
+    if (typeof updateCookieDisplay === 'function') updateCookieDisplay();
+    if (typeof updateShopUI === 'function') updateShopUI();
+
+    console.log("🚀 タイムワープ成功！ " + Math.floor(gainedCookies) + "枚獲得");
+
+    // クールダウン開始 (5分 = 300秒)
+    startTimeWarpCooldown(300);
+}
+
+// 3. 全施設のCPSを合計する計算機
+function calculateTotalCPS() {
+    var total = 0;
+    // buildings配列があるかチェック
+    if (typeof buildings !== 'undefined' && Array.isArray(buildings)) {
+        buildings.forEach(function(b) {
+            total += (b.amount || 0) * (b.cps || 0);
+        });
+    }
+    // カーソルなどの基本生産もあれば考慮 (もし変数があれば)
+    return total;
+}
+
+// 4. クールダウンタイマー管理
+function startTimeWarpCooldown(seconds) {
+    isWarpCoolingDown = true;
+    var btn = document.getElementById("btnTimeWarp");
+    var status = document.getElementById("warpStatus");
+    
+    // ボタンを無効化
+    btn.style.background = "#555";
+    btn.style.cursor = "not-allowed";
+    btn.innerText = "エネルギー充填中...";
+
+    var timeLeft = seconds;
+    var timerInterval = setInterval(function() {
+        timeLeft--;
+        status.innerText = "再使用まで: " + timeLeft + "秒";
+
+        if (timeLeft <= 0) {
+            clearInterval(timerInterval);
+            isWarpCoolingDown = false;
+            // ボタン復活
+            btn.style.background = "linear-gradient(135deg, #00d2ff, #0077ff)";
+            btn.style.cursor = "pointer";
+            btn.innerText = "⏳ 起動する (Get Cookies!)";
+            status.innerText = "STATUS: READY";
+        }
+    }, 1000);
+}
