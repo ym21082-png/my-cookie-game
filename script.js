@@ -1249,105 +1249,83 @@ function updateShopColors() {
         }
     });
 }
-// ▼▼▼▼▼▼ マナ回復システム・完全修復セット ▼▼▼▼▼▼
-// （これを script.js の一番最後に貼り付けてください）
+// ▼▼▼▼▼▼ グリモア（魔導書）完全修復セット ▼▼▼▼▼▼
 
-// 1. UI（見た目）を更新する関数
-function updateGrimoireUI() {
-    // 画面のパーツを探す
-    const manaBar = document.getElementById("mana-bar");
-    const manaText = document.getElementById("mana-text");
-
-    // データと画面パーツが両方あるときだけ実行
-    if (grimoireData && manaBar && manaText) {
-        // バーの長さを計算 (%)
-        const percentage = (grimoireData.mana / grimoireData.maxMana) * 100;
-        manaBar.style.width = percentage + "%";
-        
-        // 数字を更新（Math.floorで小数を切り捨てて見やすくする）
-        manaText.innerText = "Mana: " + Math.floor(grimoireData.mana) + "/" + grimoireData.maxMana;
-    }
+// 1. もしデータがなければ初期化する（重要！）
+if (typeof grimoireData === "undefined" || !grimoireData) {
+    var grimoireData = {
+        mana: 100,
+        maxMana: 100
+    };
 }
 
-// 2. マナを計算して増やす関数
-function updateMana() {
-    // データがないときは何もしない
-    if (typeof grimoireData === "undefined" || !grimoireData) return;
-
-    // マナが満タンでなければ回復
-    if (grimoireData.mana < grimoireData.maxMana) {
-        // ★回復スピード調整: ここを増やすと早くなります（今は0.2ずつ回復）
-        grimoireData.mana += 0.2; 
-        
-        // 最大値を超えないように補正
-        if (grimoireData.mana > grimoireData.maxMana) {
-            grimoireData.mana = grimoireData.maxMana;
+// 2. 呪文リストの定義（これが無いと空っぽになります）
+var spells = [
+    {
+        id: 1,
+        name: "Conjure Baked Goods",
+        cost: 40,
+        desc: "30分間のクッキーを一瞬で生産します。（失敗率あり）",
+        cast: function() {
+            // クッキー生産ロジック（簡易版）
+            var gain = (cookies + 100) * 0.1; 
+            cookies += gain;
+            return "魔法の効果！ " + Math.floor(gain) + " クッキーを獲得しました！";
         }
-        
-        // ★ここで必ず画面更新を呼び出す！
-        updateGrimoireUI();
+    },
+    {
+        id: 2,
+        name: "Force the Hand of Fate",
+        cost: 60,
+        desc: "ゴールデンクッキーを強制的に出現させます。",
+        cast: function() {
+            // ここにゴールデンクッキー出現処理を入れる
+            // （簡易的にメッセージだけ表示）
+            return "運命をねじ曲げました！（ゴールデンクッキー出現）";
+        }
     }
-}
+];
 
-// 3. タイマーを強制的に再起動（重複防止機能つき）
-// もし既に動いているタイマーがあれば一度リセットする
-if (window.manaInterval) clearInterval(window.manaInterval);
-
-// 新しくタイマーをセット（0.1秒ごとに updateMana を実行）
-window.manaInterval = setInterval(updateMana, 100);
-
-// ▲▲▲▲▲▲ ここまで ▲▲▲▲▲▲
-// ▼▼▼ グリモア（魔導書）の見た目を作るコード ▼▼▼
-
-// 1. 呪文を使う処理
+// 3. 呪文を使う処理
 function castSpell(id) {
     const spell = spells.find(s => s.id === id);
     if (!spell) return;
     
-    // マナが足りているかチェック
+    // マナチェック
     if (grimoireData.mana >= spell.cost) {
         grimoireData.mana -= spell.cost;
-        
-        // 呪文の効果を発動
-        let msg = spell.cast(); 
-        
-        // 画面にお知らせを表示（もし関数があれば）
-        if(typeof createFloatingText === "function") {
-             createFloatingText(window.innerWidth/2, window.innerHeight/2, msg);
-        } else {
-             alert(msg);
-        }
-        
-        // すぐに画面更新
-        updateGrimoireUI(); 
+        let msg = spell.cast();
+        alert(msg); // 簡易的な通知
+        renderGrimoireContents(); // 画面更新
     } else {
         alert("マナが足りません！");
     }
 }
 
-// 2. ウィンドウの中身を描画する関数
+// 4. ウィンドウの中身を描く関数
 function renderGrimoireContents() {
     let container = document.getElementById("grimoire-container");
     if (!container) return;
     
-    // 箱の中身（HTML）を作成
+    // 現在のマナを表示用に計算
+    let currentMana = Math.floor(grimoireData.mana);
+    
     container.innerHTML = `
         <h3 style="margin: 0 0 10px 0; border-bottom: 1px solid #444; padding-bottom: 5px; color: white;">
-            Grimoire <span id="mana-text" style="font-size:0.8em; color:#d8b4fe;">(Mana: --/--)</span>
+            Grimoire <span id="mana-text" style="font-size:0.8em; color:#d8b4fe;">(Mana: ${currentMana}/${grimoireData.maxMana})</span>
         </h3>
         
         <div style="background:#333; height:15px; width:100%; border-radius:10px; margin-bottom:15px; overflow:hidden;">
-            <div id="mana-bar" style="background:linear-gradient(90deg, #6a1b9a, #ab47bc); height:100%; width:0%; transition: width 0.3s;"></div>
+            <div id="mana-bar" style="background:linear-gradient(90deg, #6a1b9a, #ab47bc); height:100%; width:${(grimoireData.mana / grimoireData.maxMana) * 100}%;"></div>
         </div>
         
         <div id="spells-list" style="max-height: 300px; overflow-y: auto;"></div>
     `;
     
-    // 呪文ボタンを並べる
+    // 呪文ボタンを追加
     const list = document.getElementById("spells-list");
     spells.forEach(spell => {
         const btn = document.createElement("div");
-        // ボタンのデザイン
         Object.assign(btn.style, {
             background: "#2d2d2d",
             border: "1px solid #444",
@@ -1358,34 +1336,28 @@ function renderGrimoireContents() {
             color: "white"
         });
         
-        // マウスを乗せたときの色変化
+        // マウスホバー効果
         btn.onmouseover = () => btn.style.background = "#3d3d3d";
         btn.onmouseout = () => btn.style.background = "#2d2d2d";
         
-        // ボタンの中身
         btn.innerHTML = `
             <div style="font-weight:bold;">${spell.name} <span style="color:#aaa; font-size:0.9em;">(MP:${spell.cost})</span></div>
             <div style="font-size:0.8em; color:#bbb;">${spell.desc}</div>
         `;
         
-        // クリックしたら発動
         btn.onclick = () => castSpell(spell.id);
         list.appendChild(btn);
     });
-    
-    // 最後に数値を更新
-    updateGrimoireUI();
 }
 
-// 3. ウィンドウを開け閉めする関数（ボタンから呼ばれるやつ）
+// 5. ウィンドウの開閉（ボタンから呼ばれるやつ）
 function toggleGrimoire() {
     let container = document.getElementById("grimoire-container");
     
-    // もし箱自体がまだなければ作る
+    // コンテナがなければ作成
     if (!container) {
         container = document.createElement("div");
         container.id = "grimoire-container";
-        // 箱のスタイル設定
         Object.assign(container.style, {
             position: "fixed",
             bottom: "20px",
@@ -1397,16 +1369,33 @@ function toggleGrimoire() {
             padding: "15px",
             zIndex: "10000",
             boxShadow: "0 0 10px rgba(0,0,0,0.5)",
-            display: "none" // 最初は隠しておく
+            display: "none"
         });
         document.body.appendChild(container);
     }
     
-    // 表示切り替え
+    // 表示・非表示の切り替え
     if (container.style.display === "none" || container.style.display === "") {
         container.style.display = "block";
-        renderGrimoireContents(); // ★開くときに中身を描く！
+        renderGrimoireContents(); // ★ここで中身を描画！
     } else {
         container.style.display = "none";
     }
 }
+
+// 6. 常にマナを回復・更新するタイマー
+setInterval(function() {
+    if (typeof grimoireData !== "undefined") {
+        if (grimoireData.mana < grimoireData.maxMana) {
+            grimoireData.mana += 0.1; // 回復速度
+            if (grimoireData.mana > grimoireData.maxMana) grimoireData.mana = grimoireData.maxMana;
+            
+            // ウィンドウが開いている時だけ画面更新
+            var container = document.getElementById("grimoire-container");
+            if (container && container.style.display === "block") {
+                renderGrimoireContents();
+            }
+        }
+    }
+}, 100);
+// ▲▲▲▲▲▲ ここまで ▲▲▲▲▲▲
