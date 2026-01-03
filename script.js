@@ -270,18 +270,7 @@ function isHeavenlyUnlocked(id) {
     const upgrade = heavenlyUpgrades.find(u => u.id === id);
     return upgrade ? upgrade.unlocked : false;
 }
-// --- グリモアの制御 ---
-
-// マナを自然回復させる関数（毎フレーム呼ぶ）
-function updateMana() {
-    if (grimoireData.mana < grimoireData.maxMana) {
-        // 1フレームごとに少しずつ回復（調整可）
-        grimoireData.mana += 0.05; 
-        if (grimoireData.mana > grimoireData.maxMana) grimoireData.mana = grimoireData.maxMana;
-    }
-    // 画面が開いていたら表示を更新
-    if (grimoireData.isOpen) updateGrimoireUI();
-}
+// --- グリモアの制御 --
 
 // 呪文を唱える関数
 function castSpell(spellId) {
@@ -1260,4 +1249,51 @@ function updateShopColors() {
         }
     });
 }
-setInterval(updateMana, 100);
+// ▼▼▼▼▼▼ マナ回復システム・完全修復セット ▼▼▼▼▼▼
+// （これを script.js の一番最後に貼り付けてください）
+
+// 1. UI（見た目）を更新する関数
+function updateGrimoireUI() {
+    // 画面のパーツを探す
+    const manaBar = document.getElementById("mana-bar");
+    const manaText = document.getElementById("mana-text");
+
+    // データと画面パーツが両方あるときだけ実行
+    if (grimoireData && manaBar && manaText) {
+        // バーの長さを計算 (%)
+        const percentage = (grimoireData.mana / grimoireData.maxMana) * 100;
+        manaBar.style.width = percentage + "%";
+        
+        // 数字を更新（Math.floorで小数を切り捨てて見やすくする）
+        manaText.innerText = "Mana: " + Math.floor(grimoireData.mana) + "/" + grimoireData.maxMana;
+    }
+}
+
+// 2. マナを計算して増やす関数
+function updateMana() {
+    // データがないときは何もしない
+    if (typeof grimoireData === "undefined" || !grimoireData) return;
+
+    // マナが満タンでなければ回復
+    if (grimoireData.mana < grimoireData.maxMana) {
+        // ★回復スピード調整: ここを増やすと早くなります（今は0.2ずつ回復）
+        grimoireData.mana += 0.2; 
+        
+        // 最大値を超えないように補正
+        if (grimoireData.mana > grimoireData.maxMana) {
+            grimoireData.mana = grimoireData.maxMana;
+        }
+        
+        // ★ここで必ず画面更新を呼び出す！
+        updateGrimoireUI();
+    }
+}
+
+// 3. タイマーを強制的に再起動（重複防止機能つき）
+// もし既に動いているタイマーがあれば一度リセットする
+if (window.manaInterval) clearInterval(window.manaInterval);
+
+// 新しくタイマーをセット（0.1秒ごとに updateMana を実行）
+window.manaInterval = setInterval(updateMana, 100);
+
+// ▲▲▲▲▲▲ ここまで ▲▲▲▲▲▲
