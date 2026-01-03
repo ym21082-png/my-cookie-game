@@ -95,8 +95,6 @@ let skills = [
     { name: "Carpal Tunnel", cost: 500, desc: "Clicking is 2x as efficient.", unlocked: false, trigger: () => items[0].count >= 10, iconStr: "👆", target: "Click" },
     { name: "Forwards from grandma", cost: 1000, desc: "Grandmas are 2x as efficient.", unlocked: false, trigger: () => items[1].count >= 1, iconStr: "👵", target: "Grandma" },
     { name: "Lucky Cookie", cost: 77777, desc: "Clicks have a 10% chance to be x10.", unlocked: false, trigger: () => totalCookies >= 7777, iconStr: "🍀", target: "Special" },
-    
-    // ▼ ここでカンマが抜けていました。修正済み ▼
     { name: "Cheap Hoes", cost: 11000, desc: "Farms are 2x as efficient.", unlocked: false, trigger: () => items[2].count >= 10, iconStr: "🌾", target: "Farm" },
     { name: "Fertilizer", cost: 55000, desc: "Farms are 2x as efficient.", unlocked: false, trigger: () => items[2].count >= 50, iconStr: "💩", target: "Farm" },
     { name: "Sugar Gas", cost: 120000, desc: "Mines are 2x as efficient.", unlocked: false, trigger: () => items[3].count >= 10, iconStr: "⛏️", target: "Mine" },
@@ -107,7 +105,16 @@ let skills = [
     { name: "Grimoires", cost: 3300000000, desc: "Wizard Towers are 2x as efficient.", unlocked: false, trigger: () => items[7].count >= 10, iconStr: "🧙‍♂️", target: "Wizard Tower" },
     { name: "Vanilla Planet", cost: 51000000000, desc: "Shipments are 2x as efficient.", unlocked: false, trigger: () => items[8].count >= 10, iconStr: "🚀", target: "Shipment" },
     { name: "Antimony", cost: 750000000000, desc: "Alchemy Labs are 2x as efficient.", unlocked: false, trigger: () => items[9].count >= 10, iconStr: "⚗️", target: "Alchemy Lab" },
-    { name: "Ancient Tablet", cost: 10000000000000, desc: "Portals are 2x as efficient.", unlocked: false, trigger: () => items[10] && items[10].count >= 10, iconStr: "🌀", target: "Portal" }
+    { name: "Ancient Tablet", cost: 10000000000000, desc: "Portals are 2x as efficient.", unlocked: false, trigger: () => items[10] && items[10].count >= 10, iconStr: "🌀", target: "Portal" },
+    { 
+        name: "One Mind", 
+        cost: 100000, 
+        desc: "おばあちゃんと精神をリンクさせます...（警告：危険）", 
+        unlocked: false, 
+        trigger: () => items[1].count >= 15, // おばあちゃん(items[1])が15人以上で店に並ぶ
+        iconStr: "🧠", 
+        target: "Apocalypse" // 目印として "Apocalypse" と付けておきます
+    }
 ];
 
 // ==========================================
