@@ -805,6 +805,7 @@ function updateAchievementDisplay() {
 // ==========================================
 //  セーブ & ロード
 // ==========================================
+// ▼▼▼ saveGame関数（これをまるごと上書きしてください） ▼▼▼
 function saveGame() {
     const saveData = {
         cookies: cookies,
@@ -819,9 +820,9 @@ function saveGame() {
         difficultyMode: difficultyName === "Easy" ? 'easy' : difficultyName === "Hard" ? 'hard' : difficultyName === "V.Hard" ? 'veryhard' : 'normal',
         theme: currentTheme,
         totalClicks: totalClicks,
-        startTime: startTime, 
-        isApocalypse: isApocalypse,
-        grimoireData: grimoireData
+        startTime: startTime,
+        isApocalypse: isApocalypse,   // ← カンマ忘れずに
+        grimoireData: grimoireData    // ← これが新しく追加した部分
     };
     localStorage.setItem("myClickerSaveV8", JSON.stringify(saveData));
 }
