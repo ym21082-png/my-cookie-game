@@ -1249,164 +1249,148 @@ function updateShopColors() {
         }
     });
 }
-// ▼▼▼▼▼▼ グリモア（魔導書）最終決定版・接続不良修正パッチ ▼▼▼▼▼▼
+// ▼▼▼▼▼▼ グリモア（魔導書）独立型・完全版パッチ ▼▼▼▼▼▼
 
-// 1. 安全なデータ初期化（変数が既に宣言されていてもエラーにならない書き方）
-if (typeof grimoireData === 'undefined') {
-    // 宣言されていない場合のみ、グローバル変数として作成
-    window.grimoireData = { mana: 100, maxMana: 100 };
-} else if (!grimoireData) {
-    // 宣言されているが中身がない場合
-    grimoireData = { mana: 100, maxMana: 100 };
-}
-
-// 2. 呪文リスト（window.spellsとして登録し、どこからでも使えるようにする）
-window.spells = [
-    {
-        id: 1,
-        name: "Conjure Baked Goods",
-        cost: 40,
-        desc: "30分間のクッキーを一瞬で生産します。",
-        cast: function() {
-            // クッキー変数(cookies)へのアクセスを安全に行う
-            var currentCookies = (typeof cookies !== 'undefined') ? cookies : 0;
-            var gain = (currentCookies + 100) * 0.1; // とりあえず10%増加
-            
-            // 変数へ書き戻し
-            if(typeof cookies !== 'undefined') cookies += gain;
-            
-            return "魔法発動！ " + Math.floor(gain) + " クッキー獲得！";
-        }
+// 1. システム全体を「MyMagicBook」という独自の名前で管理（ゲーム本体の干渉を防ぐ）
+window.MyMagicBook = {
+    // データ（ここを変更すればゲームに影響されません）
+    data: {
+        currentMana: 100,
+        maxMana: 100
     },
-    {
-        id: 2,
-        name: "Force the Hand of Fate",
-        cost: 60,
-        desc: "ゴールデンクッキーを呼び寄せます。",
-        cast: function() {
-            return "運命が変わった...（ゴールデンクッキー出現効果）";
-        }
-    }
-];
 
-// 3. 画面更新関数
-window.renderGrimoireContents = function() {
-    var container = document.getElementById("grimoire-container");
-    if (!container) return;
-
-    // ★修正点：必ずその瞬間の最新データを取得する
-    // （変数 grimoireData がロード処理で入れ替わっても追従できるようにする）
-    var data = (typeof grimoireData !== 'undefined') ? grimoireData : window.grimoireData;
-    
-    if (!data) return; // データがなければ何もしない
-
-    // 見た目の計算
-    var currentMana = Math.floor(data.mana);
-    var maxMana = data.maxMana || 100;
-    var percentage = (currentMana / maxMana) * 100;
-
-    container.innerHTML = `
-        <h3 style="margin: 0 0 10px 0; border-bottom: 1px solid #444; padding-bottom: 5px; color: white;">
-            Grimoire <span style="font-size:0.8em; color:#d8b4fe;">(Mana: ${currentMana}/${maxMana})</span>
-        </h3>
-        
-        <div style="background:#333; height:15px; width:100%; border-radius:10px; margin-bottom:15px; overflow:hidden;">
-            <div style="background:linear-gradient(90deg, #6a1b9a, #ab47bc); height:100%; width:${percentage}%; transition: width 0.2s;"></div>
-        </div>
-        
-        <div id="spells-list" style="max-height: 300px; overflow-y: auto;"></div>
-    `;
-
-    // 呪文ボタン生成
-    var list = document.getElementById("spells-list");
-    window.spells.forEach(function(spell) {
-        var btn = document.createElement("div");
-        Object.assign(btn.style, {
-            background: "#2d2d2d", border: "1px solid #444", padding: "8px",
-            marginBottom: "8px", cursor: "pointer", borderRadius: "4px", color: "white"
-        });
-        
-        btn.onmouseover = function() { this.style.background = "#3d3d3d"; };
-        btn.onmouseout = function() { this.style.background = "#2d2d2d"; };
-        
-        btn.innerHTML = '<div style="font-weight:bold;">' + spell.name + 
-                        ' <span style="color:#aaa; font-size:0.9em;">(MP:' + spell.cost + ')</span></div>' +
-                        '<div style="font-size:0.8em; color:#bbb;">' + spell.desc + '</div>';
-        
-        btn.onclick = function() { window.castSpell(spell.id); };
-        list.appendChild(btn);
-    });
-};
-
-// 4. 魔法を使う関数
-window.castSpell = function(id) {
-    var data = (typeof grimoireData !== 'undefined') ? grimoireData : window.grimoireData;
-    var spell = window.spells.find(function(s) { return s.id === id; });
-    
-    if (data && spell) {
-        if (data.mana >= spell.cost) {
-            data.mana -= spell.cost;
-            alert(spell.cast());
-            window.renderGrimoireContents();
-        } else {
-            alert("マナが足りません！");
-        }
-    }
-};
-
-// 5. ウィンドウ開閉
-window.toggleGrimoire = function() {
-    var container = document.getElementById("grimoire-container");
-    if (!container) {
-        container = document.createElement("div");
-        container.id = "grimoire-container";
-        Object.assign(container.style, {
-            position: "fixed", bottom: "20px", left: "20px", width: "300px",
-            backgroundColor: "#1a1a1a", border: "2px solid #5d4037", borderRadius: "8px",
-            padding: "15px", zIndex: "10000", boxShadow: "0 0 10px rgba(0,0,0,0.5)",
-            display: "none"
-        });
-        document.body.appendChild(container);
-    }
-    
-    if (container.style.display === "none" || container.style.display === "") {
-        container.style.display = "block";
-        window.renderGrimoireContents();
-    } else {
-        container.style.display = "none";
-    }
-};
-
-// 6. マナ回復タイマー（★ここが修正のキモです）
-if (window.manaInterval) clearInterval(window.manaInterval);
-
-window.manaInterval = setInterval(function() {
-    // 毎回必ず変数を探しに行く（これでロード後の切断を防ぐ）
-    var data = (typeof grimoireData !== 'undefined') ? grimoireData : window.grimoireData;
-    
-    if (data) {
-        // マナが足りないなら増やす
-        if (data.mana < data.maxMana) {
-            data.mana += 0.2; // 回復速度
-            if (data.mana > data.maxMana) data.mana = data.maxMana;
-            
-            // 画面が開いていれば更新
-            var container = document.getElementById("grimoire-container");
-            if (container && container.style.display === "block") {
-                window.renderGrimoireContents();
+    // 呪文リスト
+    spells: [
+        {
+            id: 1,
+            name: "Conjure Baked Goods",
+            cost: 40,
+            desc: "30分間のクッキーを一瞬で生産します。",
+            cast: function() {
+                var currentCookies = (typeof cookies !== 'undefined') ? cookies : 0;
+                var gain = (currentCookies + 100) * 0.1; 
+                if(typeof cookies !== 'undefined') cookies += gain;
+                return "魔法発動！ " + Math.floor(gain) + " クッキー獲得！";
+            }
+        },
+        {
+            id: 2,
+            name: "Force the Hand of Fate",
+            cost: 60,
+            desc: "ゴールデンクッキーを呼び寄せます。",
+            cast: function() {
+                return "運命が変わった...（ゴールデンクッキー出現効果）";
             }
         }
-    } else {
-        // データが見つからない場合の緊急対応
-        console.log("マナ回復中: データ再接続...");
-        if (typeof grimoireData !== 'undefined') {
-             grimoireData = { mana: 0, maxMana: 100 }; // 強制復活
-        }
-    }
-}, 100);
+    ],
 
-// ★更新直後にマナがいきなり0だと不安なので、おまけで満タンにする（テスト用）
-if (typeof grimoireData !== 'undefined') {
-    grimoireData.mana = 100;
-}
+    // 画面を描画する機能
+    render: function() {
+        var container = document.getElementById("grimoire-container");
+        if (!container) return;
+
+        var mp = Math.floor(this.data.currentMana);
+        var max = this.data.maxMana;
+        var percent = (mp / max) * 100;
+
+        // HTMLを更新
+        container.innerHTML = `
+            <h3 style="margin: 0 0 10px 0; border-bottom: 1px solid #444; padding-bottom: 5px; color: white;">
+                Grimoire <span style="font-size:0.8em; color:#d8b4fe;">(Mana: ${mp}/${max})</span>
+            </h3>
+            <div style="background:#333; height:15px; width:100%; border-radius:10px; margin-bottom:15px; overflow:hidden;">
+                <div style="background:linear-gradient(90deg, #6a1b9a, #ab47bc); height:100%; width:${percent}%; transition: width 0.2s;"></div>
+            </div>
+            <div id="spells-list" style="max-height: 300px; overflow-y: auto;"></div>
+        `;
+
+        // ボタン作成
+        var list = document.getElementById("spells-list");
+        this.spells.forEach(function(spell) {
+            var btn = document.createElement("div");
+            Object.assign(btn.style, {
+                background: "#2d2d2d", border: "1px solid #444", padding: "8px",
+                marginBottom: "8px", cursor: "pointer", borderRadius: "4px", color: "white"
+            });
+            btn.onmouseover = function() { this.style.background = "#3d3d3d"; };
+            btn.onmouseout = function() { this.style.background = "#2d2d2d"; };
+            
+            btn.innerHTML = `<div style="font-weight:bold;">${spell.name} <span style="color:#aaa; font-size:0.9em;">(MP:${spell.cost})</span></div>
+                             <div style="font-size:0.8em; color:#bbb;">${spell.desc}</div>`;
+            
+            // クリック時の動作
+            btn.onclick = function() { window.MyMagicBook.activateSpell(spell.id); };
+            list.appendChild(btn);
+        });
+    },
+
+    // 魔法を使う機能
+    activateSpell: function(id) {
+        var spell = this.spells.find(function(s) { return s.id === id; });
+        if (spell) {
+            if (this.data.currentMana >= spell.cost) {
+                this.data.currentMana -= spell.cost;
+                alert(spell.cast());
+                this.render();
+            } else {
+                alert("マナが足りません！");
+            }
+        }
+    },
+
+    // ウィンドウの開閉
+    toggle: function() {
+        var container = document.getElementById("grimoire-container");
+        if (!container) {
+            container = document.createElement("div");
+            container.id = "grimoire-container";
+            Object.assign(container.style, {
+                position: "fixed", bottom: "20px", left: "20px", width: "300px",
+                backgroundColor: "#1a1a1a", border: "2px solid #5d4037", borderRadius: "8px",
+                padding: "15px", zIndex: "10000", boxShadow: "0 0 10px rgba(0,0,0,0.5)",
+                display: "none"
+            });
+            document.body.appendChild(container);
+        }
+        
+        if (container.style.display === "none" || container.style.display === "") {
+            container.style.display = "block";
+            this.render();
+        } else {
+            container.style.display = "none";
+        }
+    },
+
+    // 自動回復システムの開始
+    startSystem: function() {
+        if (window.magicInterval) clearInterval(window.magicInterval);
+        
+        window.magicInterval = setInterval(function() {
+            var book = window.MyMagicBook; // 常に最新の自分自身を参照
+            
+            // マナ回復処理
+            if (book.data.currentMana < book.data.maxMana) {
+                book.data.currentMana += 0.2; // 回復速度
+                if (book.data.currentMana > book.data.maxMana) {
+                    book.data.currentMana = book.data.maxMana;
+                }
+                
+                // 画面が開いている時だけ描画更新
+                var container = document.getElementById("grimoire-container");
+                if (container && container.style.display === "block") {
+                    book.render();
+                }
+            }
+        }, 100);
+    }
+};
+
+// 2. グローバル操作用のショートカット（HTMLのボタンから呼ぶため）
+window.toggleGrimoire = function() {
+    window.MyMagicBook.toggle();
+};
+
+// 3. システム起動！
+window.MyMagicBook.startSystem();
+
 // ▲▲▲▲▲▲ ここまで ▲▲▲▲▲▲
