@@ -697,3 +697,29 @@ body.dark #left-column {
     color: #fff;
     border-color: #222;
 }
+/* === グランマポカリプス用スタイル === */
+
+/* 暴走時の背景（暗い赤色） */
+body.apocalypse {
+    background: linear-gradient(to bottom, #2a0000, #000000) !important;
+    color: #ffcccc; /* 文字も少し赤く */
+}
+
+/* 暴走時のショップの見た目 */
+body.apocalypse .store-item {
+    background-color: #4a0000;
+    border-color: #800000;
+}
+
+/* 暴走時のおばあちゃんアイコン（反転させて怖くする） */
+body.apocalypse .item-icon-placeholder {
+    filter: invert(100%) sepia(100%) saturate(500%) hue-rotate(290deg);
+}
+
+/* レッドクッキー（激怒クッキー） */
+.wrath-cookie {
+    background-color: #ff0000; /* 赤くする */
+    border: 2px solid #800000;
+    box-shadow: 0 0 15px #f00;
+    /* もし画像を使っているなら filter: hue-rotate(150deg); などで調整 */
+}
