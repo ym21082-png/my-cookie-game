@@ -472,6 +472,9 @@ function createSkillButtons() {
                 if (cookies >= skill.cost) {
                     cookies -= skill.cost;
                     skill.unlocked = true;
+                    if (skill.name === "One Mind") {
+                        startGrandmapocalypse(); 
+                    }
                     if(typeof baseSound !== 'undefined'){
                         const sound = baseSound.cloneNode();
                         sound.playbackRate = 1.2;
