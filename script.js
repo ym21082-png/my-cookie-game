@@ -55,6 +55,48 @@ let totalClicks = 0;
 let startTime = Date.now();
 let buyAmount = 1; // 今何個まとめ買いモードか（初期値は1）
 const baseSound = new Audio('click.mp3'); // 音源ファイルが必要
+// --- グリモア（魔法）データ ---
+let grimoireData = {
+    unlocked: false,   // 魔法の塔を買うとtrueになる予定
+    mana: 100,         // 現在のマナ
+    maxMana: 100,      // 最大マナ
+    isOpen: false      // 画面が開いているか
+};
+
+// 呪文リスト
+const spells = [
+    {
+        id: 0,
+        name: "Conjure Baked Goods", // 焼き菓子召喚
+        cost: 40,
+        desc: "30分間分のクッキーを一瞬で生産します。（失敗率あり）",
+        cast: function() {
+            // 現在の秒間生産量(cookiesPerSecond) × 60秒 × 30分
+            // ※ cookiesPerSecond変数がなければ itemsなどから計算する必要がありますが
+            // いったん簡易的に「現在のクッキーの10%」を増やす処理にします
+            let gain = cookies * 0.1;
+            if (gain === 0) gain = 100; // 最低保証
+            cookies += gain;
+            showFloatingText(`+${formatNumber(gain)}`, window.innerWidth/2, window.innerHeight/2);
+            return "クッキーを召喚しました！";
+        }
+    },
+    {
+        id: 1,
+        name: "Force the Hand of Fate", // 運命を無理やり変える
+        cost: 60,
+        desc: "ゴールデンクッキーを強制的に出現させます。",
+        cast: function() {
+            // ゴールデンクッキー出現関数があれば呼ぶ
+            if (typeof spawnGoldenCookie === "function") {
+                spawnGoldenCookie();
+                return "運命が変わった...";
+            } else {
+                return "まだゴールデンクッキー機能がありません！";
+            }
+        }
+    }
+];
 
 // --- 実績（トロフィー）データ ---
 const achievements = [
@@ -225,11 +267,98 @@ function isHeavenlyUnlocked(id) {
     const upgrade = heavenlyUpgrades.find(u => u.id === id);
     return upgrade ? upgrade.unlocked : false;
 }
+// --- グリモアの制御 ---
+
+// マナを自然回復させる関数（毎フレーム呼ぶ）
+function updateMana() {
+    if (grimoireData.mana < grimoireData.maxMana) {
+        // 1フレームごとに少しずつ回復（調整可）
+        grimoireData.mana += 0.05; 
+        if (grimoireData.mana > grimoireData.maxMana) grimoireData.mana = grimoireData.maxMana;
+    }
+    // 画面が開いていたら表示を更新
+    if (grimoireData.isOpen) updateGrimoireUI();
+}
+
+// 呪文を唱える関数
+function castSpell(spellId) {
+    const spell = spells[spellId];
+    if (grimoireData.mana >= spell.cost) {
+        grimoireData.mana -= spell.cost;
+        const msg = spell.cast(); // 魔法発動！
+        console.log(msg);
+        updateGrimoireUI(); // 画面更新
+        
+        // 効果音（あれば）
+        if(typeof baseSound !== 'undefined'){
+             const s = baseSound.cloneNode();
+             s.playbackRate = 1.5; // 高い音
+             s.play().catch(()=>{});
+        }
+    } else {
+        console.log("マナが足りません！");
+    }
+}
 
 // ==========================================
 //  表示・UI関連
 // ==========================================
+// グリモアの開閉ボタン
+function toggleGrimoire() {
+    const container = document.getElementById('grimoire-container');
+    
+    // まだHTMLにコンテナがない場合、作る
+    if (!container) {
+        const div = document.createElement('div');
+        div.id = 'grimoire-container';
+        div.style.position = 'fixed';
+        div.style.bottom = '10px';
+        div.style.left = '10px';
+        div.style.background = '#222';
+        div.style.border = '2px solid #a8f';
+        div.style.padding = '10px';
+        div.style.zIndex = '1000';
+        div.style.color = '#fff';
+        div.style.display = 'none'; // 最初は隠す
+        document.body.appendChild(div);
+    }
 
+    grimoireData.isOpen = !grimoireData.isOpen;
+    document.getElementById('grimoire-container').style.display = grimoireData.isOpen ? 'block' : 'none';
+    
+    if (grimoireData.isOpen) {
+        updateGrimoireUI();
+    }
+}
+
+// グリモアの中身を描画
+function updateGrimoireUI() {
+    const container = document.getElementById('grimoire-container');
+    if (!container) return;
+
+    let html = `<h3>Grimoire (Mana: ${Math.floor(grimoireData.mana)}/${grimoireData.maxMana})</h3>`;
+    
+    // マナバー
+    let percent = (grimoireData.mana / grimoireData.maxMana) * 100;
+    html += `<div style="width:200px; height:10px; background:#444; margin-bottom:10px;">
+                <div style="width:${percent}%; height:100%; background:#a8f;"></div>
+             </div>`;
+
+    // 呪文ボタン
+    spells.forEach(spell => {
+        const canCast = grimoireData.mana >= spell.cost;
+        const opacity = canCast ? 1 : 0.5;
+        const cursor = canCast ? 'pointer' : 'not-allowed';
+        
+        html += `<div onclick="castSpell(${spell.id})" 
+                      style="border:1px solid #666; padding:5px; margin-bottom:5px; opacity:${opacity}; cursor:${cursor};">
+                    <b>${spell.name}</b> (MP:${spell.cost})<br>
+                    <span style="font-size:10px;">${spell.desc}</span>
+                 </div>`;
+    });
+
+    container.innerHTML = html;
+}
 function updateDisplay() {
     document.getElementById('score').innerText = formatNumber(cookies);
     document.getElementById('cps').innerText = formatNumber(calculateGPS());
@@ -1134,3 +1263,5 @@ function updateShopColors() {
         }
     });
 }
+// 毎フレームマナ制御を呼び出す
+setInterval(updateMana, 100); // 0.1秒ごとに更新
