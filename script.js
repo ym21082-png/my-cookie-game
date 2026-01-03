@@ -1249,3 +1249,139 @@ function updateShopColors() {
         }
     });
 }
+// ▼▼▼▼▼▼ グリモア（魔導書）安全修復パッチ ▼▼▼▼▼▼
+
+(function() { // 安全のために全体をカプセル化
+
+    // 1. データ復旧（既にある場合は上書きしない安全設計）
+    if (!window.grimoireData) {
+        window.grimoireData = { mana: 100, maxMana: 100 };
+    }
+    
+    if (!window.spells) {
+        window.spells = [
+            {
+                id: 1,
+                name: "Conjure Baked Goods",
+                cost: 40,
+                desc: "30分間のクッキーを一瞬で生産します。（失敗率あり）",
+                cast: function() {
+                    // グローバル変数のcookiesがあるか確認
+                    if(typeof cookies === 'undefined') return "準備中...";
+                    var gain = (cookies + 100) * 0.1; 
+                    cookies += gain;
+                    return "魔法の効果！ " + Math.floor(gain) + " クッキーを獲得しました！";
+                }
+            },
+            {
+                id: 2,
+                name: "Force the Hand of Fate",
+                cost: 60,
+                desc: "ゴールデンクッキーを強制的に出現させます。",
+                cast: function() {
+                    return "運命をねじ曲げました！（ゴールデンクッキー出現）";
+                }
+            }
+        ];
+    }
+
+    // 2. 呪文を使う機能
+    window.castSpell = function(id) {
+        const spell = window.spells.find(s => s.id === id);
+        if (!spell) return;
+        
+        if (window.grimoireData.mana >= spell.cost) {
+            window.grimoireData.mana -= spell.cost;
+            let msg = spell.cast();
+            alert(msg);
+            window.renderGrimoireContents();
+        } else {
+            alert("マナが足りません！");
+        }
+    };
+
+    // 3. ウィンドウの中身を描く機能
+    window.renderGrimoireContents = function() {
+        let container = document.getElementById("grimoire-container");
+        if (!container) return;
+        
+        let currentMana = Math.floor(window.grimoireData.mana);
+        let maxMana = window.grimoireData.maxMana;
+        let percentage = (currentMana / maxMana) * 100;
+
+        container.innerHTML = `
+            <h3 style="margin: 0 0 10px 0; border-bottom: 1px solid #444; padding-bottom: 5px; color: white;">
+                Grimoire <span id="mana-text" style="font-size:0.8em; color:#d8b4fe;">(Mana: ${currentMana}/${maxMana})</span>
+            </h3>
+            
+            <div style="background:#333; height:15px; width:100%; border-radius:10px; margin-bottom:15px; overflow:hidden;">
+                <div id="mana-bar" style="background:linear-gradient(90deg, #6a1b9a, #ab47bc); height:100%; width:${percentage}%;"></div>
+            </div>
+            
+            <div id="spells-list" style="max-height: 300px; overflow-y: auto;"></div>
+        `;
+        
+        const list = document.getElementById("spells-list");
+        window.spells.forEach(spell => {
+            const btn = document.createElement("div");
+            Object.assign(btn.style, {
+                background: "#2d2d2d", border: "1px solid #444", padding: "8px",
+                marginBottom: "8px", cursor: "pointer", borderRadius: "4px", color: "white"
+            });
+            
+            btn.onmouseover = () => btn.style.background = "#3d3d3d";
+            btn.onmouseout = () => btn.style.background = "#2d2d2d";
+            
+            btn.innerHTML = `
+                <div style="font-weight:bold;">${spell.name} <span style="color:#aaa; font-size:0.9em;">(MP:${spell.cost})</span></div>
+                <div style="font-size:0.8em; color:#bbb;">${spell.desc}</div>
+            `;
+            
+            btn.onclick = () => window.castSpell(spell.id);
+            list.appendChild(btn);
+        });
+    };
+
+    // 4. ウィンドウ開閉機能
+    window.toggleGrimoire = function() {
+        let container = document.getElementById("grimoire-container");
+        if (!container) {
+            container = document.createElement("div");
+            container.id = "grimoire-container";
+            Object.assign(container.style, {
+                position: "fixed", bottom: "20px", left: "20px", width: "300px",
+                backgroundColor: "#1a1a1a", border: "2px solid #5d4037", borderRadius: "8px",
+                padding: "15px", zIndex: "10000", boxShadow: "0 0 10px rgba(0,0,0,0.5)",
+                display: "none"
+            });
+            document.body.appendChild(container);
+        }
+        
+        if (container.style.display === "none" || container.style.display === "") {
+            container.style.display = "block";
+            window.renderGrimoireContents();
+        } else {
+            container.style.display = "none";
+        }
+    };
+
+    // 5. マナ回復タイマー（重複防止機能付き）
+    if (window.manaInterval) clearInterval(window.manaInterval);
+    window.manaInterval = setInterval(function() {
+        if (window.grimoireData) {
+            if (window.grimoireData.mana < window.grimoireData.maxMana) {
+                window.grimoireData.mana += 0.1; 
+                if (window.grimoireData.mana > window.grimoireData.maxMana) {
+                    window.grimoireData.mana = window.grimoireData.maxMana;
+                }
+                
+                var container = document.getElementById("grimoire-container");
+                if (container && container.style.display === "block") {
+                    window.renderGrimoireContents();
+                }
+            }
+        }
+    }, 100);
+
+})(); // 即時実行終了
+// ▲▲▲▲▲▲ ここまで ▲▲▲▲▲▲
