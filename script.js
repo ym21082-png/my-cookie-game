@@ -1297,3 +1297,116 @@ if (window.manaInterval) clearInterval(window.manaInterval);
 window.manaInterval = setInterval(updateMana, 100);
 
 // ▲▲▲▲▲▲ ここまで ▲▲▲▲▲▲
+// ▼▼▼ グリモア（魔導書）の見た目を作るコード ▼▼▼
+
+// 1. 呪文を使う処理
+function castSpell(id) {
+    const spell = spells.find(s => s.id === id);
+    if (!spell) return;
+    
+    // マナが足りているかチェック
+    if (grimoireData.mana >= spell.cost) {
+        grimoireData.mana -= spell.cost;
+        
+        // 呪文の効果を発動
+        let msg = spell.cast(); 
+        
+        // 画面にお知らせを表示（もし関数があれば）
+        if(typeof createFloatingText === "function") {
+             createFloatingText(window.innerWidth/2, window.innerHeight/2, msg);
+        } else {
+             alert(msg);
+        }
+        
+        // すぐに画面更新
+        updateGrimoireUI(); 
+    } else {
+        alert("マナが足りません！");
+    }
+}
+
+// 2. ウィンドウの中身を描画する関数
+function renderGrimoireContents() {
+    let container = document.getElementById("grimoire-container");
+    if (!container) return;
+    
+    // 箱の中身（HTML）を作成
+    container.innerHTML = `
+        <h3 style="margin: 0 0 10px 0; border-bottom: 1px solid #444; padding-bottom: 5px; color: white;">
+            Grimoire <span id="mana-text" style="font-size:0.8em; color:#d8b4fe;">(Mana: --/--)</span>
+        </h3>
+        
+        <div style="background:#333; height:15px; width:100%; border-radius:10px; margin-bottom:15px; overflow:hidden;">
+            <div id="mana-bar" style="background:linear-gradient(90deg, #6a1b9a, #ab47bc); height:100%; width:0%; transition: width 0.3s;"></div>
+        </div>
+        
+        <div id="spells-list" style="max-height: 300px; overflow-y: auto;"></div>
+    `;
+    
+    // 呪文ボタンを並べる
+    const list = document.getElementById("spells-list");
+    spells.forEach(spell => {
+        const btn = document.createElement("div");
+        // ボタンのデザイン
+        Object.assign(btn.style, {
+            background: "#2d2d2d",
+            border: "1px solid #444",
+            padding: "8px",
+            marginBottom: "8px",
+            cursor: "pointer",
+            borderRadius: "4px",
+            color: "white"
+        });
+        
+        // マウスを乗せたときの色変化
+        btn.onmouseover = () => btn.style.background = "#3d3d3d";
+        btn.onmouseout = () => btn.style.background = "#2d2d2d";
+        
+        // ボタンの中身
+        btn.innerHTML = `
+            <div style="font-weight:bold;">${spell.name} <span style="color:#aaa; font-size:0.9em;">(MP:${spell.cost})</span></div>
+            <div style="font-size:0.8em; color:#bbb;">${spell.desc}</div>
+        `;
+        
+        // クリックしたら発動
+        btn.onclick = () => castSpell(spell.id);
+        list.appendChild(btn);
+    });
+    
+    // 最後に数値を更新
+    updateGrimoireUI();
+}
+
+// 3. ウィンドウを開け閉めする関数（ボタンから呼ばれるやつ）
+function toggleGrimoire() {
+    let container = document.getElementById("grimoire-container");
+    
+    // もし箱自体がまだなければ作る
+    if (!container) {
+        container = document.createElement("div");
+        container.id = "grimoire-container";
+        // 箱のスタイル設定
+        Object.assign(container.style, {
+            position: "fixed",
+            bottom: "20px",
+            left: "20px",
+            width: "300px",
+            backgroundColor: "#1a1a1a",
+            border: "2px solid #5d4037",
+            borderRadius: "8px",
+            padding: "15px",
+            zIndex: "10000",
+            boxShadow: "0 0 10px rgba(0,0,0,0.5)",
+            display: "none" // 最初は隠しておく
+        });
+        document.body.appendChild(container);
+    }
+    
+    // 表示切り替え
+    if (container.style.display === "none" || container.style.display === "") {
+        container.style.display = "block";
+        renderGrimoireContents(); // ★開くときに中身を描く！
+    } else {
+        container.style.display = "none";
+    }
+}
