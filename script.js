@@ -226,34 +226,11 @@ function isHeavenlyUnlocked(id) {
     const upgrade = heavenlyUpgrades.find(u => u.id === id);
     return upgrade ? upgrade.unlocked : false;
 }
-// --- グリモアの制御 --
 
-// 呪文を唱える関数
-function castSpell(spellId) {
-    const spell = spells[spellId];
-    if (grimoireData.mana >= spell.cost) {
-        grimoireData.mana -= spell.cost;
-        const msg = spell.cast(); // 魔法発動！
-        console.log(msg);
-        updateGrimoireUI(); // 画面更新
-        
-        // 効果音（あれば）
-        if(typeof baseSound !== 'undefined'){
-             const s = baseSound.cloneNode();
-             s.playbackRate = 1.5; // 高い音
-             s.play().catch(()=>{});
-        }
-    } else {
-        console.log("マナが足りません！");
-    }
-}
 
 // ==========================================
 //  表示・UI関連
 // ==========================================
-// グリモアの開閉ボタン
-function toggleGrimoire() {
-    const container = document.getElementById('grimoire-container');
     
     // まだHTMLにコンテナがない場合、作る
     if (!container) {
@@ -279,34 +256,6 @@ function toggleGrimoire() {
     }
 }
 
-// グリモアの中身を描画
-function updateGrimoireUI() {
-    const container = document.getElementById('grimoire-container');
-    if (!container) return;
-
-    let html = `<h3>Grimoire (Mana: ${Math.floor(grimoireData.mana)}/${grimoireData.maxMana})</h3>`;
-    
-    // マナバー
-    let percent = (grimoireData.mana / grimoireData.maxMana) * 100;
-    html += `<div style="width:200px; height:10px; background:#444; margin-bottom:10px;">
-                <div style="width:${percent}%; height:100%; background:#a8f;"></div>
-             </div>`;
-
-    // 呪文ボタン
-    spells.forEach(spell => {
-        const canCast = grimoireData.mana >= spell.cost;
-        const opacity = canCast ? 1 : 0.5;
-        const cursor = canCast ? 'pointer' : 'not-allowed';
-        
-        html += `<div onclick="castSpell(${spell.id})" 
-                      style="border:1px solid #666; padding:5px; margin-bottom:5px; opacity:${opacity}; cursor:${cursor};">
-                    <b>${spell.name}</b> (MP:${spell.cost})<br>
-                    <span style="font-size:10px;">${spell.desc}</span>
-                 </div>`;
-    });
-
-    container.innerHTML = html;
-}
 function updateDisplay() {
     document.getElementById('score').innerText = formatNumber(cookies);
     document.getElementById('cps').innerText = formatNumber(calculateGPS());
