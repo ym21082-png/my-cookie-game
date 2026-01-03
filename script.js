@@ -828,19 +828,20 @@ function saveGame() {
 }
 
 // ゲームロード関数（完全修正版）
+// ▼▼▼ ゲームロード関数（ここからコピー） ▼▼▼
 function loadGame() {
     var savedGame = localStorage.getItem("myClickerSaveV8");
     if (savedGame) {
         var data = JSON.parse(savedGame);
 
-        // --- 基本データの読み込み ---
+        // 基本データの読み込み
         if (typeof data.cookies !== "undefined") cookies = data.cookies;
         if (typeof data.totalCookies !== "undefined") totalCookies = data.totalCookies;
         if (typeof data.lifetimeCookies !== "undefined") lifetimeCookies = data.lifetimeCookies;
         if (typeof data.prestigeLevel !== "undefined") prestigeLevel = data.prestigeLevel;
         if (typeof data.startTime !== "undefined") startTime = data.startTime;
-        
-        // --- アイテム（建物）の読み込み ---
+
+        // アイテム（建物）
         if (data.items) {
             for (let i = 0; i < data.items.length; i++) {
                 if (items[i]) {
@@ -850,7 +851,7 @@ function loadGame() {
             }
         }
 
-        // --- スキル・実績などの読み込み ---
+        // スキル・実績など
         if (data.skills && typeof skills !== 'undefined') {
             for (let i = 0; i < data.skills.length; i++) {
                 if (skills[i]) skills[i].unlocked = data.skills[i].unlocked;
@@ -867,11 +868,11 @@ function loadGame() {
              }
         }
 
-        // --- その他の設定 ---
+        // 設定・アポカリプス
         if (data.theme) currentTheme = data.theme;
         if (data.isApocalypse) isApocalypse = data.isApocalypse;
         
-        // ▼▼▼ グリモア（魔法）の読み込み ▼▼▼
+        // ★ マナ（魔法）の読み込み
         if (data.grimoireData) {
             grimoireData = data.grimoireData;
         }
@@ -880,6 +881,7 @@ function loadGame() {
         if (typeof updateGrimoireUI === "function") updateGrimoireUI();
     }
 }
+
 function startGame(lang) {
     currentLang = lang;
     if (document.getElementById('cookie-label')) document.getElementById('cookie-label').innerText = t("score");
